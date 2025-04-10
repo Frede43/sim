@@ -21,7 +21,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import DashboardLayout from '@/components/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 
 const CooperativeMembers = () => {
@@ -141,7 +140,7 @@ const CooperativeMembers = () => {
   ];
 
   return (
-    <DashboardLayout sidebarItems={sidebarItems}>
+    <div className="p-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <h1 className="text-2xl font-bold">Gestion des Membres</h1>
         <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
@@ -345,7 +344,7 @@ const CooperativeMembers = () => {
           )}
         </CardContent>
       </Card>
-    </DashboardLayout>
+    </div>
   );
 };
 

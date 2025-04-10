@@ -209,7 +209,7 @@ const CooperativeProducts = () => {
   };
 
   return (
-    <DashboardLayout sidebarItems={sidebarItems}>
+    <div className="p-6">
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Gestion des Produits</h1>
@@ -655,7 +655,7 @@ const CooperativeProducts = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </DashboardLayout>
+    </div>
   );
 };
 

@@ -1,10 +1,8 @@
-
 import React from 'react';
 import { FileText, Download, Calendar, Filter } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import DashboardLayout from '@/components/DashboardLayout';
 
 const NgoReports = () => {
   const sidebarItems = [
@@ -30,8 +28,7 @@ const NgoReports = () => {
   ];
 
   return (
-    <DashboardLayout sidebarItems={sidebarItems}>
-      <div className="flex flex-col gap-6">
+    <div className="p-6 flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Rapports et documents</h1>
           <div className="flex gap-2">
@@ -175,8 +172,7 @@ const NgoReports = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

@@ -1,9 +1,7 @@
-
 import React from 'react';
-import { FileText, Download, ArrowUpDown, FileBarChart, FileClock } from 'lucide-react';
+import { FileText, Download, ArrowUpDown, FileBarChart, FileClock, Eye } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import DashboardLayout from '@/components/DashboardLayout';
 
 const CooperativeReports = () => {
   const sidebarItems = [
@@ -21,8 +19,7 @@ const CooperativeReports = () => {
   ];
 
   return (
-    <DashboardLayout sidebarItems={sidebarItems}>
-      <div className="flex flex-col gap-6">
+    <div className="p-6 flex flex-col gap-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Rapports et documentation</h1>
           <Button>Générer un nouveau rapport</Button>
@@ -188,7 +185,6 @@ const CooperativeReports = () => {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
   );
 };
 

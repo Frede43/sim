@@ -91,54 +91,54 @@ const App = () => {
         
         {/* Buyer routes */}
         <Route path="/dashboard/buyer" element={<ProtectedRoute component={BuyerDashboard} roles={[ROLES.BUYER]} />}>
-          <Route path="catalog" element={<BuyerCatalog />} />
-          <Route path="checkout" element={<Checkout />} />
-          <Route path="orders" element={<BuyerOrders />} />
-          <Route path="suppliers" element={<BuyerSuppliers />} />
-          <Route path="products/:id" element={<ProductDetails />} />
+          <Route path="catalog" element={<ProtectedRoute component={BuyerCatalog} roles={[ROLES.BUYER]} />} />
+          <Route path="checkout" element={<ProtectedRoute component={Checkout} roles={[ROLES.BUYER]} />} />
+          <Route path="orders" element={<ProtectedRoute component={BuyerOrders} roles={[ROLES.BUYER]} />} />
+          <Route path="suppliers" element={<ProtectedRoute component={BuyerSuppliers} roles={[ROLES.BUYER]} />} />
+          <Route path="products/:id" element={<ProtectedRoute component={ProductDetails} roles={[ROLES.BUYER]} />} />
         </Route>
 
         {/* Farmer routes */}
         <Route path="/dashboard/farmer" element={<ProtectedRoute component={FarmerDashboard} roles={[ROLES.FARMER]} />}>
-          <Route path="/dashboard/farmer/products" element={<FarmerProducts />} />
-          <Route path="/dashboard/farmer/sales" element={<FarmerSales />} />
-          <Route path="/dashboard/farmer/subsidies" element={<FarmerSubsidies />} />
-          <Route path="/dashboard/farmer/market" element={<FarmerMarket />} />
-          <Route path="/dashboard/farmer/cooperatives" element={<FarmerCooperatives />} />
+          <Route path="products" element={<ProtectedRoute component={FarmerProducts} roles={[ROLES.FARMER]} />} />
+          <Route path="sales" element={<ProtectedRoute component={FarmerSales} roles={[ROLES.FARMER]} />} />
+          <Route path="subsidies" element={<ProtectedRoute component={FarmerSubsidies} roles={[ROLES.FARMER]} />} />
+          <Route path="market" element={<ProtectedRoute component={FarmerMarket} roles={[ROLES.FARMER]} />} />
+          <Route path="cooperatives" element={<ProtectedRoute component={FarmerCooperatives} roles={[ROLES.FARMER]} />} />
         </Route>
 
         {/* Cooperative routes */}
         <Route path="/dashboard/cooperative" element={<ProtectedRoute component={CooperativeDashboard} roles={[ROLES.COOPERATIVE]} />}>
-          <Route path="/dashboard/cooperative/members" element={<CooperativeMembers />} />
-          <Route path="/dashboard/cooperative/products" element={<CooperativeProducts />} />
-          <Route path="/dashboard/cooperative/stats" element={<CooperativeStats />} />
-          <Route path="/dashboard/cooperative/subsidies" element={<CooperativeSubsidies />} />
-          <Route path="/dashboard/cooperative/reports" element={<CooperativeReports />} />
+          <Route path="members" element={<ProtectedRoute component={CooperativeMembers} roles={[ROLES.COOPERATIVE]} />} />
+          <Route path="products" element={<ProtectedRoute component={CooperativeProducts} roles={[ROLES.COOPERATIVE]} />} />
+          <Route path="stats" element={<ProtectedRoute component={CooperativeStats} roles={[ROLES.COOPERATIVE]} />} />
+          <Route path="subsidies" element={<ProtectedRoute component={CooperativeSubsidies} roles={[ROLES.COOPERATIVE]} />} />
+          <Route path="reports" element={<ProtectedRoute component={CooperativeReports} roles={[ROLES.COOPERATIVE]} />} />
         </Route>
 
         {/* Government routes */}
         <Route path="/dashboard/government" element={<ProtectedRoute component={GovernmentDashboard} roles={[ROLES.GOVERNMENT]} />}>
-          <Route path="/dashboard/government/stats" element={<GovernmentStats />} />
-          <Route path="/dashboard/government/map" element={<GovernmentMap />} />
-          <Route path="/dashboard/government/reports" element={<GovernmentReports />} />
-          <Route path="/dashboard/government/alerts" element={<GovernmentAlerts />} />
+          <Route path="stats" element={<ProtectedRoute component={GovernmentStats} roles={[ROLES.GOVERNMENT]} />} />
+          <Route path="map" element={<ProtectedRoute component={GovernmentMap} roles={[ROLES.GOVERNMENT]} />} />
+          <Route path="reports" element={<ProtectedRoute component={GovernmentReports} roles={[ROLES.GOVERNMENT]} />} />
+          <Route path="alerts" element={<ProtectedRoute component={GovernmentAlerts} roles={[ROLES.GOVERNMENT]} />} />
         </Route>
 
         {/* Financial routes */}
         <Route path="/dashboard/financial" element={<ProtectedRoute component={FinancialDashboard} roles={[ROLES.FINANCIAL]} />}>
-          <Route path="/dashboard/financial/borrowers" element={<FinancialBorrowers />} />
-          <Route path="/dashboard/financial/loans" element={<FinancialLoans />} />
-          <Route path="/dashboard/financial/stats" element={<FinancialStats />} />
-          <Route path="/dashboard/financial/notifications" element={<FinancialNotifications />} />
+          <Route path="borrowers" element={<ProtectedRoute component={FinancialBorrowers} roles={[ROLES.FINANCIAL]} />} />
+          <Route path="loans" element={<ProtectedRoute component={FinancialLoans} roles={[ROLES.FINANCIAL]} />} />
+          <Route path="stats" element={<ProtectedRoute component={FinancialStats} roles={[ROLES.FINANCIAL]} />} />
+          <Route path="notifications" element={<ProtectedRoute component={FinancialNotifications} roles={[ROLES.FINANCIAL]} />} />
         </Route>
 
         {/* NGO routes */}
         <Route path="/dashboard/ngo" element={<ProtectedRoute component={NgoDashboard} roles={[ROLES.NGO]} />}>
-          <Route path="/dashboard/ngo/beneficiaries" element={<NgoBeneficiaries />} />
-          <Route path="/dashboard/ngo/projects" element={<NgoProjects />} />
-          <Route path="/dashboard/ngo/impact" element={<NgoImpact />} />
-          <Route path="/dashboard/ngo/map" element={<NgoMap />} />
-          <Route path="/dashboard/ngo/reports" element={<NgoReports />} />
+          <Route path="beneficiaries" element={<ProtectedRoute component={NgoBeneficiaries} roles={[ROLES.NGO]} />} />
+          <Route path="projects" element={<ProtectedRoute component={NgoProjects} roles={[ROLES.NGO]} />} />
+          <Route path="impact" element={<ProtectedRoute component={NgoImpact} roles={[ROLES.NGO]} />} />
+          <Route path="map" element={<ProtectedRoute component={NgoMap} roles={[ROLES.NGO]} />} />
+          <Route path="reports" element={<ProtectedRoute component={NgoReports} roles={[ROLES.NGO]} />} />
         </Route>
       </Route>
 

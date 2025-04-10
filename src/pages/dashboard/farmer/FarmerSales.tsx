@@ -14,7 +14,6 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import DashboardLayout from '@/components/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 
 const FarmerSales = () => {
@@ -124,7 +123,7 @@ const FarmerSales = () => {
   ];
 
   return (
-    <DashboardLayout sidebarItems={sidebarItems}>
+    <div className="p-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <h1 className="text-2xl font-bold">Mes Ventes</h1>
         <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
@@ -293,7 +292,7 @@ const FarmerSales = () => {
           )}
         </CardContent>
       </Card>
-    </DashboardLayout>
+    </div>
   );
 };
 

@@ -2,26 +2,10 @@
 import React from 'react';
 import { BarChart, PieChart, Calendar } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import DashboardLayout from '@/components/DashboardLayout';
 
 const CooperativeStats = () => {
-  const sidebarItems = [
-    {
-      icon: BarChart,
-      label: 'Tableau de bord',
-      href: '/dashboard/cooperative',
-    },
-    {
-      icon: BarChart,
-      label: 'Statistiques',
-      href: '/dashboard/cooperative/stats',
-      active: true,
-    },
-  ];
-
   return (
-    <DashboardLayout sidebarItems={sidebarItems}>
-      <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 p-6">
         <h1 className="text-2xl font-bold">Statistiques de la coopérative</h1>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -97,7 +81,6 @@ const CooperativeStats = () => {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
   );
 };
 
