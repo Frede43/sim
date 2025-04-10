@@ -100,45 +100,45 @@ const App = () => {
 
         {/* Farmer routes */}
         <Route path="/dashboard/farmer" element={<ProtectedRoute component={FarmerDashboard} roles={[ROLES.FARMER]} />}>
-          <Route path="products" element={<FarmerProducts />} />
-          <Route path="sales" element={<FarmerSales />} />
-          <Route path="subsidies" element={<FarmerSubsidies />} />
-          <Route path="market" element={<FarmerMarket />} />
-          <Route path="cooperatives" element={<FarmerCooperatives />} />
+          <Route path="/dashboard/farmer/products" element={<FarmerProducts />} />
+          <Route path="/dashboard/farmer/sales" element={<FarmerSales />} />
+          <Route path="/dashboard/farmer/subsidies" element={<FarmerSubsidies />} />
+          <Route path="/dashboard/farmer/market" element={<FarmerMarket />} />
+          <Route path="/dashboard/farmer/cooperatives" element={<FarmerCooperatives />} />
         </Route>
 
         {/* Cooperative routes */}
         <Route path="/dashboard/cooperative" element={<ProtectedRoute component={CooperativeDashboard} roles={[ROLES.COOPERATIVE]} />}>
-          <Route path="members" element={<CooperativeMembers />} />
-          <Route path="products" element={<CooperativeProducts />} />
-          <Route path="stats" element={<CooperativeStats />} />
-          <Route path="subsidies" element={<CooperativeSubsidies />} />
-          <Route path="reports" element={<CooperativeReports />} />
+          <Route path="/dashboard/cooperative/members" element={<CooperativeMembers />} />
+          <Route path="/dashboard/cooperative/products" element={<CooperativeProducts />} />
+          <Route path="/dashboard/cooperative/stats" element={<CooperativeStats />} />
+          <Route path="/dashboard/cooperative/subsidies" element={<CooperativeSubsidies />} />
+          <Route path="/dashboard/cooperative/reports" element={<CooperativeReports />} />
         </Route>
 
         {/* Government routes */}
         <Route path="/dashboard/government" element={<ProtectedRoute component={GovernmentDashboard} roles={[ROLES.GOVERNMENT]} />}>
-          <Route path="stats" element={<GovernmentStats />} />
-          <Route path="map" element={<GovernmentMap />} />
-          <Route path="reports" element={<GovernmentReports />} />
-          <Route path="alerts" element={<GovernmentAlerts />} />
+          <Route path="/dashboard/government/stats" element={<GovernmentStats />} />
+          <Route path="/dashboard/government/map" element={<GovernmentMap />} />
+          <Route path="/dashboard/government/reports" element={<GovernmentReports />} />
+          <Route path="/dashboard/government/alerts" element={<GovernmentAlerts />} />
         </Route>
 
         {/* Financial routes */}
         <Route path="/dashboard/financial" element={<ProtectedRoute component={FinancialDashboard} roles={[ROLES.FINANCIAL]} />}>
-          <Route path="borrowers" element={<FinancialBorrowers />} />
-          <Route path="loans" element={<FinancialLoans />} />
-          <Route path="stats" element={<FinancialStats />} />
-          <Route path="notifications" element={<FinancialNotifications />} />
+          <Route path="/dashboard/financial/borrowers" element={<FinancialBorrowers />} />
+          <Route path="/dashboard/financial/loans" element={<FinancialLoans />} />
+          <Route path="/dashboard/financial/stats" element={<FinancialStats />} />
+          <Route path="/dashboard/financial/notifications" element={<FinancialNotifications />} />
         </Route>
 
         {/* NGO routes */}
         <Route path="/dashboard/ngo" element={<ProtectedRoute component={NgoDashboard} roles={[ROLES.NGO]} />}>
-          <Route path="beneficiaries" element={<NgoBeneficiaries />} />
-          <Route path="projects" element={<NgoProjects />} />
-          <Route path="impact" element={<NgoImpact />} />
-          <Route path="map" element={<NgoMap />} />
-          <Route path="reports" element={<NgoReports />} />
+          <Route path="/dashboard/ngo/beneficiaries" element={<NgoBeneficiaries />} />
+          <Route path="/dashboard/ngo/projects" element={<NgoProjects />} />
+          <Route path="/dashboard/ngo/impact" element={<NgoImpact />} />
+          <Route path="/dashboard/ngo/map" element={<NgoMap />} />
+          <Route path="/dashboard/ngo/reports" element={<NgoReports />} />
         </Route>
       </Route>
 
