@@ -1,8 +1,10 @@
+
 import React, { useState } from 'react';
 import { ShoppingCart, ShoppingBag, Package, Users, Search, Filter, Eye, SlidersHorizontal, Check, X } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import DashboardLayout from '@/components/DashboardLayout';
 import { useCart } from '@/contexts/CartContext';
 import { useNavigate } from 'react-router-dom';
 import ShoppingCartComponent from '@/components/ShoppingCart';
@@ -156,7 +158,7 @@ const BuyerCatalog = () => {
   };
 
   return (
-    <div className="p-6">
+    <DashboardLayout sidebarItems={sidebarItems}>
       <div className="flex flex-col gap-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h1 className="text-2xl font-bold">Catalogue de Produits</h1>
@@ -366,7 +368,7 @@ const BuyerCatalog = () => {
         )}
       </div>
       <ShoppingCartComponent />
-    </div>
+    </DashboardLayout>
   );
 };
 

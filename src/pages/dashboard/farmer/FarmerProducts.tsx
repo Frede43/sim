@@ -51,6 +51,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
+import DashboardLayout from '@/components/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 
 // Schema de validation pour le formulaire de produit
@@ -252,7 +253,7 @@ const FarmerProducts = () => {
   };
 
   return (
-    <div className="p-6">
+    <DashboardLayout sidebarItems={sidebarItems}>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Mes Produits Agricoles</h1>
         <Button className="bg-agri hover:bg-agri/90" onClick={handleAddClick}>
@@ -750,7 +751,7 @@ const FarmerProducts = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </DashboardLayout>
   );
 };
 

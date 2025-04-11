@@ -54,7 +54,7 @@ const CooperativeStats = () => {
                 <thead>
                   <tr className="border-b">
                     <th className="text-left p-2 font-medium">Membre</th>
-                    <th className="text-left p-2 font-medium">Culture</th>
+                    <th className="text-left p-2 font-medium">Cultureje</th>
                     <th className="text-left p-2 font-medium">Production (kg)</th>
                     <th className="text-left p-2 font-medium">Période</th>
                     <th className="text-left p-2 font-medium">Performance</th>
