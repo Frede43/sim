@@ -1,290 +1,251 @@
-
 import React from 'react';
 import { Bell, Check, ChevronRight, AlertTriangle, BadgeCheck, TrendingUp, Calendar } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import DashboardLayout from '@/components/DashboardLayout';
+
+interface Notification {
+  id: string;
+  title: string;
+  description: string;
+  type: 'alert' | 'success' | 'info';
+  date: string;
+  read: boolean;
+}
+
+const notifications: Notification[] = [
+  {
+    id: 'n1',
+    title: 'Retard de paiement',
+    description: 'La Coopérative Rizicole Imbo a un retard de paiement de 5 jours',
+    type: 'alert',
+    date: '12/04/2024',
+    read: false,
+  },
+  {
+    id: 'n2',
+    title: 'Prêt approuvé',
+    description: 'Le prêt de Jean Ndayishimiye a été approuvé',
+    type: 'success',
+    date: '11/04/2024',
+    read: false,
+  },
+  {
+    id: 'n3',
+    title: 'Nouvelle demande',
+    description: "L'Association Café Kayanza a soumis une nouvelle demande de prêt",
+    type: 'info',
+    date: '10/04/2024',
+    read: true,
+  },
+];
 
 const FinancialNotifications = () => {
-  const sidebarItems = [
-    {
-      icon: Bell,
-      label: 'Tableau de bord',
-      href: '/dashboard/financial',
-    },
-    {
-      icon: Bell,
-      label: 'Notifications',
-      href: '/dashboard/financial/notifications',
-      active: true,
-    },
-  ];
-
-  const notifications = [
-    { 
-      id: 1, 
-      title: 'Risque de défaut élevé', 
-      message: '5 prêts dans la région de Gitega présentent un risque élevé de défaut.',
-      time: 'Il y a 2 heures',
-      type: 'warning',
-      read: false
-    },
-    { 
-      id: 2, 
-      title: 'Paiements en retard', 
-      message: '12 paiements sont en retard de plus de 30 jours. Une action est requise.',
-      time: 'Il y a 1 jour',
-      type: 'alert',
-      read: false
-    },
-    { 
-      id: 3, 
-      title: 'Objectif de décaissement atteint', 
-      message: "L'objectif trimestriel de 500M BIF de prêts a été atteint.",
-      time: 'Il y a 3 jours',
-      type: 'success',
-      read: true
-    },
-    { 
-      id: 4, 
-      title: 'Nouvelle demande de prêt', 
-      message: 'La coopérative de maïs de Kirundo a soumis une demande de prêt de 7,5M BIF.',
-      time: 'Il y a 4 jours',
-      type: 'info',
-      read: true
-    },
-    { 
-      id: 5, 
-      title: 'Rapport trimestriel disponible', 
-      message: 'Le rapport financier du Q1 2024 est prêt pour révision.',
-      time: 'Il y a 1 semaine',
-      type: 'info',
-      read: true
-    },
-  ];
-
-  const renderIcon = (type) => {
-    switch (type) {
-      case 'warning':
-        return <AlertTriangle className="h-5 w-5 text-amber-500" />;
-      case 'alert':
-        return <AlertTriangle className="h-5 w-5 text-red-500" />;
-      case 'success':
-        return <BadgeCheck className="h-5 w-5 text-green-500" />;
-      case 'info':
-      default:
-        return <Bell className="h-5 w-5 text-blue-500" />;
-    }
-  };
-
   return (
-    <DashboardLayout sidebarItems={sidebarItems}>
-      <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-between">
+    <div className="space-y-6 p-6">
+      <div className="flex justify-between items-center">
+        <div>
           <h1 className="text-2xl font-bold">Centre de notifications</h1>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm">
-              <Check className="mr-2 h-4 w-4" />
-              Tout marquer comme lu
-            </Button>
-            <Button variant="outline" size="sm">
-              <Calendar className="mr-2 h-4 w-4" />
-              Filtrer par date
-            </Button>
-          </div>
+          <p className="text-muted-foreground">
+            Alertes et mises à jour importantes
+          </p>
         </div>
-        
-        <Tabs defaultValue="all">
-          <TabsList>
-            <TabsTrigger value="all">Toutes</TabsTrigger>
-            <TabsTrigger value="unread">Non lues</TabsTrigger>
-            <TabsTrigger value="alerts">Alertes</TabsTrigger>
-            <TabsTrigger value="info">Informations</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="all" className="mt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Notifications récentes</CardTitle>
-                <CardDescription>Toutes les notifications et alertes</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {notifications.map((notification) => (
-                    <div 
-                      key={notification.id} 
-                      className={`flex items-start gap-4 p-4 rounded-lg ${notification.read ? 'bg-card' : 'bg-muted/50'}`}
-                    >
-                      <div className="mt-0.5">
-                        {renderIcon(notification.type)}
+        <Button variant="outline">
+          <Check className="h-4 w-4 mr-2" />
+          Tout marquer comme lu
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Notifications non lues
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">8</div>
+            <p className="text-xs text-amber-500 mt-1">
+              Nécessitent votre attention
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Alertes critiques
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">2</div>
+            <p className="text-xs text-red-500 mt-1">
+              À traiter en priorité
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Taux de résolution
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">92%</div>
+            <p className="text-xs text-green-500 mt-1">
+              Dans les 24h
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Temps de réponse
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">4h</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              En moyenne
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Notifications récentes</CardTitle>
+          <CardDescription>
+            Toutes les alertes et mises à jour des 7 derniers jours
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="all" className="space-y-4">
+            <TabsList>
+              <TabsTrigger value="all">Toutes</TabsTrigger>
+              <TabsTrigger value="alerts">Alertes</TabsTrigger>
+              <TabsTrigger value="updates">Mises à jour</TabsTrigger>
+            </TabsList>
+            <TabsContent value="all" className="space-y-4">
+              {notifications.map((notification) => (
+                <Card key={notification.id}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-4">
+                      <div className={`p-2 rounded-full ${
+                        notification.type === 'alert' 
+                          ? 'bg-red-100'
+                          : notification.type === 'success'
+                            ? 'bg-green-100'
+                            : 'bg-blue-100'
+                      }`}>
+                        {notification.type === 'alert' && (
+                          <AlertTriangle className={`h-4 w-4 ${
+                            notification.type === 'alert'
+                              ? 'text-red-600'
+                              : ''
+                          }`} />
+                        )}
+                        {notification.type === 'success' && (
+                          <BadgeCheck className="h-4 w-4 text-green-600" />
+                        )}
+                        {notification.type === 'info' && (
+                          <TrendingUp className="h-4 w-4 text-blue-600" />
+                        )}
                       </div>
-                      <div className="flex-1 space-y-1">
-                        <p className="font-medium">{notification.title}</p>
-                        <p className="text-sm text-muted-foreground">{notification.message}</p>
-                        <p className="text-xs text-muted-foreground">{notification.time}</p>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-semibold">{notification.title}</h3>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Calendar className="h-4 w-4" />
+                            {notification.date}
+                          </div>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {notification.description}
+                        </p>
                       </div>
-                      <div>
-                        <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="icon">
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </TabsContent>
+            <TabsContent value="alerts" className="space-y-4">
+              {notifications
+                .filter(n => n.type === 'alert')
+                .map((notification) => (
+                  <Card key={notification.id}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-4">
+                        <div className="p-2 rounded-full bg-red-100">
+                          <AlertTriangle className="h-4 w-4 text-red-600" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-semibold">{notification.title}</h3>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Calendar className="h-4 w-4" />
+                              {notification.date}
+                            </div>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {notification.description}
+                          </p>
+                        </div>
+                        <Button variant="ghost" size="icon">
                           <ChevronRight className="h-4 w-4" />
                         </Button>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="unread" className="mt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Notifications non lues</CardTitle>
-                <CardDescription>Notifications qui n'ont pas encore été consultées</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-muted-foreground">
-                  Filtrez pour afficher uniquement les notifications non lues
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="alerts" className="mt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Alertes importantes</CardTitle>
-                <CardDescription>Notifications critiques nécessitant votre attention</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-muted-foreground">
-                  Filtrez pour afficher uniquement les alertes importantes
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="info" className="mt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Informations générales</CardTitle>
-                <CardDescription>Mises à jour et informations du système</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-muted-foreground">
-                  Filtrez pour afficher uniquement les informations générales
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Paramètres de notification</CardTitle>
-              <CardDescription>Gérez vos préférences de notification</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Alertes de risque</p>
-                    <p className="text-sm text-muted-foreground">Notifications pour les risques élevés</p>
-                  </div>
-                  <div className="flex items-center h-5">
-                    <input
-                      id="risk-alerts"
-                      type="checkbox"
-                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                      defaultChecked
-                    />
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Remboursements en retard</p>
-                    <p className="text-sm text-muted-foreground">Alertes pour les paiements en retard</p>
-                  </div>
-                  <div className="flex items-center h-5">
-                    <input
-                      id="late-payments"
-                      type="checkbox"
-                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                      defaultChecked
-                    />
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Nouvelles demandes</p>
-                    <p className="text-sm text-muted-foreground">Notifications pour les nouvelles demandes de prêt</p>
-                  </div>
-                  <div className="flex items-center h-5">
-                    <input
-                      id="new-applications"
-                      type="checkbox"
-                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                      defaultChecked
-                    />
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Rapports</p>
-                    <p className="text-sm text-muted-foreground">Notifications pour les nouveaux rapports</p>
-                  </div>
-                  <div className="flex items-center h-5">
-                    <input
-                      id="reports"
-                      type="checkbox"
-                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                      defaultChecked
-                    />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Seuils d'alerte</CardTitle>
-              <CardDescription>Configurez les seuils pour les notifications</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Seuil de risque pour alerte</label>
-                  <select className="w-full rounded-md border border-input bg-background px-3 py-2">
-                    <option>Élevé uniquement</option>
-                    <option>Moyen et élevé</option>
-                    <option>Tous les niveaux</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Délai pour paiements en retard</label>
-                  <select className="w-full rounded-md border border-input bg-background px-3 py-2">
-                    <option>7 jours</option>
-                    <option>15 jours</option>
-                    <option>30 jours</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Format des notifications</label>
-                  <select className="w-full rounded-md border border-input bg-background px-3 py-2">
-                    <option>Dans l'application uniquement</option>
-                    <option>Application et email</option>
-                    <option>Application, email et SMS</option>
-                  </select>
-                </div>
-                <Button className="w-full">Sauvegarder les préférences</Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </DashboardLayout>
+                    </CardContent>
+                  </Card>
+                ))}
+            </TabsContent>
+            <TabsContent value="updates" className="space-y-4">
+              {notifications
+                .filter(n => n.type !== 'alert')
+                .map((notification) => (
+                  <Card key={notification.id}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-4">
+                        <div className={`p-2 rounded-full ${
+                          notification.type === 'success'
+                            ? 'bg-green-100'
+                            : 'bg-blue-100'
+                        }`}>
+                          {notification.type === 'success' ? (
+                            <BadgeCheck className="h-4 w-4 text-green-600" />
+                          ) : (
+                            <TrendingUp className="h-4 w-4 text-blue-600" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-semibold">{notification.title}</h3>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Calendar className="h-4 w-4" />
+                              {notification.date}
+                            </div>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {notification.description}
+                          </p>
+                        </div>
+                        <Button variant="ghost" size="icon">
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

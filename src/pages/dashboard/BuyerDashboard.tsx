@@ -1,17 +1,19 @@
 
 import React from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
 import { ShoppingCart, ShoppingBag, Package, Users } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import DashboardLayout from '@/components/DashboardLayout';
 import { ProfileDashboard } from '@/components/ProfileDashboard';
 
 const BuyerDashboard = () => {
+  const location = useLocation();
   const sidebarItems = [
     {
       icon: ShoppingCart,
       label: 'Tableau de bord',
       href: '/dashboard/buyer',
-      active: true,
+      active: location.pathname === '/dashboard/buyer',
     },
     {
       icon: ShoppingBag,
@@ -32,7 +34,8 @@ const BuyerDashboard = () => {
 
   return (
     <DashboardLayout sidebarItems={sidebarItems}>
-      <div className="flex flex-col gap-6">
+      {location.pathname === '/dashboard/buyer' ? (
+        <div className="flex flex-col gap-6 p-6">
         <h1 className="text-2xl font-bold">Tableau de bord Acheteur</h1>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -214,7 +217,10 @@ const BuyerDashboard = () => {
             </CardContent>
           </Card>
         </div>
-      </div>
+        </div>
+      ) : (
+        <Outlet />
+      )}
     </DashboardLayout>
   );
 };

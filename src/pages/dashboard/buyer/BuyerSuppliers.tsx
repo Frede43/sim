@@ -5,33 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import DashboardLayout from '@/components/DashboardLayout';
+
 
 const BuyerSuppliers = () => {
-  const sidebarItems = [
-    {
-      icon: ShoppingCart,
-      label: 'Tableau de bord',
-      href: '/dashboard/buyer',
-    },
-    {
-      icon: ShoppingBag,
-      label: 'Catalogue',
-      href: '/dashboard/buyer/catalog',
-    },
-    {
-      icon: Package,
-      label: 'Commandes',
-      href: '/dashboard/buyer/orders',
-    },
-    {
-      icon: Users,
-      label: 'Fournisseurs',
-      href: '/dashboard/buyer/suppliers',
-      active: true,
-    },
-  ];
-
   const suppliers = [
     {
       id: 1,
@@ -102,7 +78,6 @@ const BuyerSuppliers = () => {
   ];
 
   return (
-    <DashboardLayout sidebarItems={sidebarItems}>
       <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Mes Fournisseurs</h1>
@@ -203,7 +178,6 @@ const BuyerSuppliers = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
   );
 };
 

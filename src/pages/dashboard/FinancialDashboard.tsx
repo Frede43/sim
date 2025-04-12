@@ -1,22 +1,35 @@
-
 import React from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
+import { 
+  Home, 
+  Users, 
+  FileText, 
+  BarChart3, 
+  Bell,
+  TrendingUp,
+  Building,
+  Award,
+  DollarSign,
+  AlertCircle
+} from 'lucide-react';
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle 
+} from '@/components/ui/card';
 import DashboardLayout from '@/components/DashboardLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { ArrowUpRight, Bell, CreditCard, DollarSign, FileText, Users, AlertTriangle, BadgeCheck, TrendingUp, TrendingDown } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
-import { useAuth } from '@/contexts/AuthContext';
 
 const FinancialDashboard = () => {
-  const { user } = useAuth();
+  const location = useLocation();
 
   const sidebarItems = [
     {
-      icon: CreditCard,
+      icon: Home,
       label: 'Tableau de bord',
       href: '/dashboard/financial',
-      active: true,
+      active: location.pathname === '/dashboard/financial',
     },
     {
       icon: Users,
@@ -29,9 +42,14 @@ const FinancialDashboard = () => {
       href: '/dashboard/financial/loans',
     },
     {
-      icon: TrendingUp,
+      icon: BarChart3,
       label: 'Statistiques',
       href: '/dashboard/financial/stats',
+    },
+    {
+      icon: AlertCircle,
+      label: 'Évaluation des risques',
+      href: '/dashboard/financial/risk',
     },
     {
       icon: Bell,
@@ -42,231 +60,161 @@ const FinancialDashboard = () => {
 
   return (
     <DashboardLayout sidebarItems={sidebarItems}>
-      <div className="flex flex-col gap-5 w-full">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold tracking-tight">Tableau de bord financier</h1>
-          <p className="text-muted-foreground">
-            Gérez les prêts agricoles, suivez les remboursements et analysez les risques financiers.
-          </p>
+      {location.pathname === '/dashboard/financial' ? (
+        <div className="space-y-6 p-6">
+          <h1 className="text-2xl font-bold mb-6">
+            Tableau de bord - Institution financière 🏦
+          </h1>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Total des prêts
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">125.8M BIF</div>
+                <p className="text-xs text-muted-foreground flex items-center mt-1">
+                  <TrendingUp className="text-green-500 h-4 w-4 mr-1" />
+                  <span className="text-green-500 font-medium">+12%</span> par rapport au trimestre précédent
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Emprunteurs actifs
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">842</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Dans 15 provinces
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Taux de remboursement
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">97.5%</div>
+                <p className="text-xs text-muted-foreground flex items-center mt-1">
+                  <TrendingUp className="text-green-500 h-4 w-4 mr-1" />
+                  <span className="text-green-500 font-medium">+2.5%</span> d'amélioration
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Prêts à risque
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">12</div>
+                <p className="text-xs text-amber-500 mt-1">
+                  4 nécessitent une attention immédiate
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Répartition des prêts par secteur</CardTitle>
+                <CardDescription>
+                  Distribution du portefeuille de prêts
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pb-5">
+                <div className="space-y-4">
+                  {[
+                    { name: 'Production agricole', percentage: 45, amount: '56.6M BIF', color: 'bg-green-500' },
+                    { name: 'Transformation', percentage: 25, amount: '31.5M BIF', color: 'bg-blue-500' },
+                    { name: 'Commerce', percentage: 15, amount: '18.9M BIF', color: 'bg-amber-500' },
+                    { name: 'Équipement', percentage: 10, amount: '12.6M BIF', color: 'bg-purple-500' },
+                    { name: 'Autres', percentage: 5, amount: '6.3M BIF', color: 'bg-gray-500' },
+                  ].map((item, index) => (
+                    <div key={index}>
+                      <div className="flex justify-between mb-1">
+                        <span className="text-sm font-medium">{item.name}</span>
+                        <span className="text-sm font-medium">{item.percentage}% ({item.amount})</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div 
+                          className={`h-2.5 rounded-full ${item.color}`} 
+                          style={{ width: `${item.percentage}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Impact des financements</CardTitle>
+                <CardDescription>
+                  Indicateurs de performance
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    { 
+                      title: 'Création d\'emplois', 
+                      value: '+1,250',
+                      icon: Users,
+                      color: 'text-blue-500 bg-blue-100'
+                    },
+                    { 
+                      title: 'Croissance des revenus', 
+                      value: '+32%',
+                      icon: TrendingUp,
+                      color: 'text-green-500 bg-green-100'
+                    },
+                    { 
+                      title: 'Modernisation', 
+                      value: '+45%',
+                      icon: Building,
+                      color: 'text-purple-500 bg-purple-100'
+                    },
+                    { 
+                      title: 'Qualité des produits', 
+                      value: '+28%',
+                      icon: Award,
+                      color: 'text-amber-500 bg-amber-100'
+                    },
+                  ].map((item, index) => (
+                    <div key={index} className="bg-gray-50 p-4 rounded-lg">
+                      <div className="flex items-start">
+                        <div className={`rounded-full p-2 ${item.color} mr-3`}>
+                          <item.icon className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <div className="font-medium mb-1">{item.title}</div>
+                          <div className="text-2xl font-bold">{item.value}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Prêts actifs</CardTitle>
-              <CreditCard className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">234</div>
-              <p className="text-xs text-muted-foreground">
-                +12% depuis le mois dernier
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Montant total des prêts</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">1,257,600 BIF</div>
-              <p className="text-xs text-muted-foreground">
-                +18.5% depuis le trimestre dernier
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Taux de remboursement</CardTitle>
-              <TrendingUp className="h-4 w-4 text-green-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">92.4%</div>
-              <p className="text-xs text-muted-foreground">
-                +2.1% depuis la dernière année
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Prêts à risque</CardTitle>
-              <AlertTriangle className="h-4 w-4 text-amber-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">28</div>
-              <p className="text-xs text-muted-foreground">
-                -4% depuis le mois dernier
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
-            <TabsTrigger value="borrowers">Emprunteurs</TabsTrigger>
-            <TabsTrigger value="loans">Gestion des prêts</TabsTrigger>
-            <TabsTrigger value="reports">Rapports</TabsTrigger>
-          </TabsList>
-          <TabsContent value="overview" className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-              <Card className="lg:col-span-4">
-                <CardHeader>
-                  <CardTitle>Activité de prêt par région</CardTitle>
-                  <CardDescription>
-                    Distribution des prêts agricoles par régions au Burundi
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pl-2">
-                  <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                    [Graphique: Carte du Burundi avec distribution des prêts]
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="lg:col-span-3">
-                <CardHeader>
-                  <CardTitle>Statut des remboursements</CardTitle>
-                  <CardDescription>
-                    Vue d'ensemble des remboursements des prêts
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-8">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="font-medium">Remboursés</div>
-                        <div>68%</div>
-                      </div>
-                      <Progress value={68} className="h-2 bg-muted" />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="font-medium">En cours</div>
-                        <div>24%</div>
-                      </div>
-                      <Progress value={24} className="h-2 bg-muted" />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="font-medium">Retards</div>
-                        <div>6%</div>
-                      </div>
-                      <Progress value={6} className="h-2 bg-muted" />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="font-medium">Défauts</div>
-                        <div>2%</div>
-                      </div>
-                      <Progress value={2} className="h-2 bg-muted" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle>Prêts en attente d'approbation</CardTitle>
-                </CardHeader>
-                <CardContent className="text-sm">
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-4">
-                      <div className="flex-1 space-y-1">
-                        <p className="font-medium">Coopérative Rizicole Imbo</p>
-                        <p className="text-muted-foreground">12,500,000 BIF - Matériel agricole</p>
-                      </div>
-                      <Button variant="outline" size="sm">Analyser</Button>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="flex-1 space-y-1">
-                        <p className="font-medium">Jean Ndayishimiye</p>
-                        <p className="text-muted-foreground">2,800,000 BIF - Semences améliorées</p>
-                      </div>
-                      <Button variant="outline" size="sm">Analyser</Button>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="flex-1 space-y-1">
-                        <p className="font-medium">Association Café Kayanza</p>
-                        <p className="text-muted-foreground">8,750,000 BIF - Expansion</p>
-                      </div>
-                      <Button variant="outline" size="sm">Analyser</Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle>Alertes financières</CardTitle>
-                </CardHeader>
-                <CardContent className="text-sm">
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-4">
-                      <Bell className="mt-0.5 h-4 w-4 text-amber-500" />
-                      <div className="space-y-1">
-                        <p className="font-medium">Risque de défaut élevé</p>
-                        <p className="text-muted-foreground">5 prêts dans la région de Gitega présentent un risque élevé</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-4">
-                      <Bell className="mt-0.5 h-4 w-4 text-red-500" />
-                      <div className="space-y-1">
-                        <p className="font-medium">Paiements en retard</p>
-                        <p className="text-muted-foreground">12 paiements sont en retard de plus de 30 jours</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-4">
-                      <BadgeCheck className="mt-0.5 h-4 w-4 text-green-500" />
-                      <div className="space-y-1">
-                        <p className="font-medium">Objectif de décaissement atteint</p>
-                        <p className="text-muted-foreground">L'objectif trimestriel de 500M BIF a été atteint</p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle>Tendances des taux</CardTitle>
-                </CardHeader>
-                <CardContent className="text-sm">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <TrendingDown className="h-4 w-4 text-green-500" />
-                        <div className="font-medium">Prêts agricoles saisonniers</div>
-                      </div>
-                      <div>7.5%</div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4 text-amber-500" />
-                        <div className="font-medium">Prêts d'équipement</div>
-                      </div>
-                      <div>9.2%</div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <TrendingDown className="h-4 w-4 text-green-500" />
-                        <div className="font-medium">Microcrédits ruraux</div>
-                      </div>
-                      <div>4.8%</div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <TrendingDown className="h-4 w-4 text-green-500" />
-                        <div className="font-medium">Prêts de stockage</div>
-                      </div>
-                      <div>6.5%</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
+      ) : (
+        <Outlet />
+      )}
     </DashboardLayout>
   );
 };

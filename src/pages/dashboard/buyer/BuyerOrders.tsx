@@ -4,35 +4,10 @@ import { ShoppingCart, ShoppingBag, Package, Users, Clock, CheckCircle2, Refresh
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import DashboardLayout from '@/components/DashboardLayout';
+
 
 const BuyerOrders = () => {
-  const sidebarItems = [
-    {
-      icon: ShoppingCart,
-      label: 'Tableau de bord',
-      href: '/dashboard/buyer',
-    },
-    {
-      icon: ShoppingBag,
-      label: 'Catalogue',
-      href: '/dashboard/buyer/catalog',
-    },
-    {
-      icon: Package,
-      label: 'Commandes',
-      href: '/dashboard/buyer/orders',
-      active: true,
-    },
-    {
-      icon: Users,
-      label: 'Fournisseurs',
-      href: '/dashboard/buyer/suppliers',
-    },
-  ];
-
   return (
-    <DashboardLayout sidebarItems={sidebarItems}>
       <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Mes Commandes</h1>
@@ -163,7 +138,6 @@ const BuyerOrders = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
   );
 };
 

@@ -1,170 +1,170 @@
-
 import React from 'react';
-import { BarChart, PieChart, LineChart, AreaChart } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Users, Building } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import DashboardLayout from '@/components/DashboardLayout';
 
 const GovernmentStats = () => {
-  const sidebarItems = [
-    {
-      icon: BarChart,
-      label: 'Tableau de bord',
-      href: '/dashboard/government',
-    },
-    {
-      icon: BarChart,
-      label: 'Statistiques',
-      href: '/dashboard/government/stats',
-      active: true,
-    },
-  ];
-
   return (
-    <DashboardLayout sidebarItems={sidebarItems}>
-      <div className="flex flex-col gap-6">
-        <h1 className="text-2xl font-bold">Statistiques Nationales Agricoles</h1>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Production totale
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">456,780 tonnes</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                +8.2% par rapport à l'année précédente
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Superficie cultivée
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">124,500 hectares</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                +3.5% par rapport à l'année précédente
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Agriculteurs enregistrés
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">78,245</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                +12.3% par rapport à l'année précédente
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Coopératives actives
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">156</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                +5.4% par rapport à l'année précédente
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Production par région</CardTitle>
-              <CardDescription>Répartition de la production agricole par province</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center">
-              <PieChart className="h-64 w-64 text-muted-foreground my-6" />
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
-                {[
-                  { region: 'Bujumbura', percentage: '24%', color: 'bg-blue-500' },
-                  { region: 'Gitega', percentage: '18%', color: 'bg-green-500' },
-                  { region: 'Ngozi', percentage: '15%', color: 'bg-yellow-500' },
-                  { region: 'Autres', percentage: '43%', color: 'bg-gray-500' },
-                ].map((region, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded-full ${region.color}`}></div>
-                    <div>
-                      <p className="text-sm font-medium">{region.region}</p>
-                      <p className="text-xs text-muted-foreground">{region.percentage}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Évolution de la production</CardTitle>
-              <CardDescription>Production agricole sur les 5 dernières années</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center">
-              <LineChart className="h-64 w-full text-muted-foreground my-6" />
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-2 w-full">
-                {[2019, 2020, 2021, 2022, 2023].map((year, index) => (
-                  <div key={index} className="text-center">
-                    <p className="text-sm font-medium">{year}</p>
-                    <p className="text-xs text-muted-foreground">{340 + index * 30} kt</p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        
+    <div className="space-y-6 p-6">
+      <div>
+        <h1 className="text-2xl font-bold">Statistiques agricoles</h1>
+        <p className="text-muted-foreground">
+          Vue d'ensemble des indicateurs clés du secteur agricole
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
-          <CardHeader>
-            <CardTitle>Production par type de culture</CardTitle>
-            <CardDescription>Répartition des principales cultures au niveau national</CardDescription>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Production totale
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-6">
+            <div className="text-2xl font-bold">125.8K tonnes</div>
+            <p className="text-xs text-muted-foreground flex items-center mt-1">
+              <TrendingUp className="text-green-500 h-4 w-4 mr-1" />
+              <span className="text-green-500 font-medium">+12%</span> par rapport à l'année précédente
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Valeur marchande
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">458.2M BIF</div>
+            <p className="text-xs text-muted-foreground flex items-center mt-1">
+              <TrendingUp className="text-green-500 h-4 w-4 mr-1" />
+              <span className="text-green-500 font-medium">+8%</span> de croissance
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Agriculteurs actifs
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">24,521</div>
+            <p className="text-xs text-muted-foreground flex items-center mt-1">
+              <TrendingUp className="text-green-500 h-4 w-4 mr-1" />
+              <span className="text-green-500 font-medium">+5%</span> ce trimestre
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Surface cultivée
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">45,280 ha</div>
+            <p className="text-xs text-muted-foreground flex items-center mt-1">
+              <TrendingDown className="text-red-500 h-4 w-4 mr-1" />
+              <span className="text-red-500 font-medium">-2%</span> dû aux conditions climatiques
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Répartition par culture</CardTitle>
+            <CardDescription>
+              Production agricole par type de culture
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
               {[
-                { crop: 'Maïs', production: '120,450 tonnes', percentage: 26, region: 'Principalement Gitega, Ngozi' },
-                { crop: 'Haricots', production: '85,320 tonnes', percentage: 19, region: 'Toutes les provinces' },
-                { crop: 'Bananes', production: '78,940 tonnes', percentage: 17, region: 'Principalement Cibitoke, Bubanza' },
-                { crop: 'Manioc', production: '68,250 tonnes', percentage: 15, region: 'Principalement Kirundo, Muyinga' },
-                { crop: 'Riz', production: '45,780 tonnes', percentage: 10, region: 'Principalement Bubanza, Cibitoke' },
-                { crop: 'Autres', production: '58,040 tonnes', percentage: 13, region: 'Toutes les provinces' },
-              ].map((crop, index) => (
+                { name: 'Maïs', amount: '45.2K tonnes', percentage: 35, color: 'bg-yellow-500' },
+                { name: 'Riz', amount: '32.8K tonnes', percentage: 25, color: 'bg-green-500' },
+                { name: 'Haricots', amount: '25.6K tonnes', percentage: 20, color: 'bg-red-500' },
+                { name: 'Manioc', amount: '15.2K tonnes', percentage: 12, color: 'bg-blue-500' },
+                { name: 'Autres', amount: '7K tonnes', percentage: 8, color: 'bg-gray-500' },
+              ].map((item, index) => (
                 <div key={index}>
-                  <div className="flex justify-between items-center mb-1">
-                    <div>
-                      <span className="font-medium">{crop.crop}</span>
-                      <span className="text-sm text-muted-foreground ml-2">({crop.production})</span>
-                    </div>
-                    <span className="text-sm">{crop.percentage}%</span>
+                  <div className="flex justify-between mb-1">
+                    <span className="text-sm font-medium">{item.name}</span>
+                    <span className="text-sm font-medium">{item.amount} ({item.percentage}%)</span>
                   </div>
-                  <div className="w-full bg-muted/50 rounded-full h-2.5 mb-1">
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
                     <div 
-                      className="bg-primary h-2.5 rounded-full" 
-                      style={{ width: `${crop.percentage}%` }}
+                      className={`h-2.5 rounded-full ${item.color}`} 
+                      style={{ width: `${item.percentage}%` }}
                     ></div>
                   </div>
-                  <p className="text-xs text-muted-foreground">{crop.region}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Indicateurs économiques</CardTitle>
+            <CardDescription>
+              Impact sur l'économie locale
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[
+                { 
+                  title: 'Revenus moyens', 
+                  value: '+28%',
+                  description: 'Par agriculteur',
+                  icon: DollarSign,
+                  color: 'text-green-500 bg-green-100'
+                },
+                { 
+                  title: 'Emplois créés', 
+                  value: '1,845',
+                  description: 'Ce trimestre',
+                  icon: Users,
+                  color: 'text-blue-500 bg-blue-100'
+                },
+                { 
+                  title: 'Exportations', 
+                  value: '+15%',
+                  description: 'Croissance annuelle',
+                  icon: TrendingUp,
+                  color: 'text-amber-500 bg-amber-100'
+                },
+                { 
+                  title: 'Coopératives', 
+                  value: '124',
+                  description: 'Actives',
+                  icon: Building,
+                  color: 'text-purple-500 bg-purple-100'
+                },
+              ].map((item, index) => (
+                <div key={index} className="bg-gray-50 p-4 rounded-lg">
+                  <div className="flex items-start">
+                    <div className={`rounded-full p-2 ${item.color} mr-3`}>
+                      <item.icon className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold">{item.value}</div>
+                      <div className="font-medium text-sm">{item.title}</div>
+                      <div className="text-xs text-muted-foreground">{item.description}</div>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

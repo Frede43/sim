@@ -1,10 +1,8 @@
-
 import React, { useState } from 'react';
 import { ShoppingCart, ShoppingBag, Package, Users, Search, Filter, Eye, SlidersHorizontal, Check, X } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import DashboardLayout from '@/components/DashboardLayout';
 import { useCart } from '@/contexts/CartContext';
 import { useNavigate } from 'react-router-dom';
 import ShoppingCartComponent from '@/components/ShoppingCart';
@@ -33,30 +31,6 @@ const BuyerCatalog = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedRegion, setSelectedRegion] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('default');
-
-  const sidebarItems = [
-    {
-      icon: ShoppingCart,
-      label: 'Tableau de bord',
-      href: '/dashboard/buyer',
-    },
-    {
-      icon: ShoppingBag,
-      label: 'Catalogue',
-      href: '/dashboard/buyer/catalog',
-      active: true,
-    },
-    {
-      icon: Package,
-      label: 'Commandes',
-      href: '/dashboard/buyer/orders',
-    },
-    {
-      icon: Users,
-      label: 'Fournisseurs',
-      href: '/dashboard/buyer/suppliers',
-    },
-  ];
 
   const products = [
     {
@@ -158,95 +132,66 @@ const BuyerCatalog = () => {
   };
 
   return (
-    <DashboardLayout sidebarItems={sidebarItems}>
+    <>
       <div className="flex flex-col gap-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h1 className="text-2xl font-bold">Catalogue de Produits</h1>
           
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-            <div className="relative w-full sm:w-auto">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
-                type="search"
                 placeholder="Rechercher un produit..."
-                className="pl-8 w-full sm:w-[250px]"
+                className="pl-9 w-[250px]"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filtrer
+                <Button variant="outline" size="icon">
+                  <SlidersHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56">
                 <DropdownMenuLabel>Filtres</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                
                 <DropdownMenuGroup>
-                  <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Catégorie</DropdownMenuLabel>
-                  <DropdownMenuItem 
-                    onClick={() => setSelectedCategory('')}
-                    className="flex items-center justify-between"
-                  >
-                    Toutes
-                    {selectedCategory === '' && <Check className="h-4 w-4" />}
-                  </DropdownMenuItem>
-                  {categories.map(category => (
-                    <DropdownMenuItem 
+                  <DropdownMenuLabel className="text-xs font-normal text-muted-foreground px-2 py-1.5">
+                    Catégorie
+                  </DropdownMenuLabel>
+                  {categories.map((category) => (
+                    <DropdownMenuItem
                       key={category}
                       onClick={() => setSelectedCategory(category)}
-                      className="flex items-center justify-between"
                     >
-                      {category}
-                      {selectedCategory === category && <Check className="h-4 w-4" />}
+                      <span className="flex-1">{category}</span>
+                      {selectedCategory === category && (
+                        <Check className="h-4 w-4 text-green-500" />
+                      )}
                     </DropdownMenuItem>
                   ))}
-                </DropdownMenuGroup>
-                
-                <DropdownMenuSeparator />
-                
-                <DropdownMenuGroup>
-                  <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Région</DropdownMenuLabel>
-                  <DropdownMenuItem 
-                    onClick={() => setSelectedRegion('')}
-                    className="flex items-center justify-between"
-                  >
-                    Toutes
-                    {selectedRegion === '' && <Check className="h-4 w-4" />}
-                  </DropdownMenuItem>
-                  {regions.map(region => (
-                    <DropdownMenuItem 
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel className="text-xs font-normal text-muted-foreground px-2 py-1.5">
+                    Région
+                  </DropdownMenuLabel>
+                  {regions.map((region) => (
+                    <DropdownMenuItem
                       key={region}
                       onClick={() => setSelectedRegion(region)}
-                      className="flex items-center justify-between"
                     >
-                      {region}
-                      {selectedRegion === region && <Check className="h-4 w-4" />}
+                      <span className="flex-1">{region}</span>
+                      {selectedRegion === region && (
+                        <Check className="h-4 w-4 text-green-500" />
+                      )}
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuGroup>
-                
-                <DropdownMenuSeparator />
-                
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={resetFilters}
-                  className="w-full"
-                >
-                  Réinitialiser les filtres
-                </Button>
               </DropdownMenuContent>
             </DropdownMenu>
-            
-            <Select
-              value={sortBy}
-              onValueChange={setSortBy}
-            >
+
+            <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Trier par" />
               </SelectTrigger>
@@ -260,7 +205,7 @@ const BuyerCatalog = () => {
             </Select>
           </div>
         </div>
-        
+
         {(selectedCategory || selectedRegion) && (
           <div className="flex items-center gap-2 flex-wrap">
             {selectedCategory && (
@@ -299,7 +244,7 @@ const BuyerCatalog = () => {
             </Button>
           </div>
         )}
-        
+
         {sortedProducts.length === 0 ? (
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-muted rounded-full mx-auto flex items-center justify-center mb-4">
@@ -368,7 +313,7 @@ const BuyerCatalog = () => {
         )}
       </div>
       <ShoppingCartComponent />
-    </DashboardLayout>
+    </>
   );
 };
 

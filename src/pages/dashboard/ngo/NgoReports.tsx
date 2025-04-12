@@ -4,23 +4,7 @@ import { FileText, Download, Calendar, Filter } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import DashboardLayout from '@/components/DashboardLayout';
-
 const NgoReports = () => {
-  const sidebarItems = [
-    {
-      icon: FileText,
-      label: 'Tableau de bord',
-      href: '/dashboard/ngo',
-    },
-    {
-      icon: FileText,
-      label: 'Rapports',
-      href: '/dashboard/ngo/reports',
-      active: true,
-    },
-  ];
-
   const reportsList = [
     { title: 'Rapport annuel d\'impact 2023', date: '15 Jan 2024', type: 'Impact', size: '4.2 MB' },
     { title: 'Résultats du projet d\'irrigation Gitega', date: '28 Fév 2024', type: 'Projet', size: '2.8 MB' },
@@ -30,8 +14,7 @@ const NgoReports = () => {
   ];
 
   return (
-    <DashboardLayout sidebarItems={sidebarItems}>
-      <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Rapports et documents</h1>
           <div className="flex gap-2">
@@ -176,7 +159,6 @@ const NgoReports = () => {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
   );
 };
 

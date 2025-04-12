@@ -65,6 +65,7 @@ import NgoProjects from './pages/dashboard/ngo/NgoProjects';
 import NgoImpact from './pages/dashboard/ngo/NgoImpact';
 import NgoMap from './pages/dashboard/ngo/NgoMap';
 import NgoReports from './pages/dashboard/ngo/NgoReports';
+import NgoFunding from './pages/dashboard/ngo/NgoFunding';
 
 const App = () => {
   return (
@@ -139,6 +140,7 @@ const App = () => {
           <Route path="impact" element={<ProtectedRoute component={NgoImpact} roles={[ROLES.NGO]} />} />
           <Route path="map" element={<ProtectedRoute component={NgoMap} roles={[ROLES.NGO]} />} />
           <Route path="reports" element={<ProtectedRoute component={NgoReports} roles={[ROLES.NGO]} />} />
+          <Route path="funding" element={<ProtectedRoute component={NgoFunding} roles={[ROLES.NGO]} />} />
         </Route>
       </Route>
 

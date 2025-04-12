@@ -1,6 +1,6 @@
 
 import React from 'react';
-import DashboardLayout from '@/components/DashboardLayout';
+
 import { ChevronRight, ShoppingBag, Users, LineChart as LineChartIcon, BarChart as BarChartIcon, Download } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -73,7 +73,6 @@ const BuyerAnalytics = () => {
   const averageMonthlyPurchase = totalPurchases / purchaseHistoryData.length;
 
   return (
-    <DashboardLayout sidebarItems={sidebarItems}>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold tracking-tight">Analyses et Statistiques</h1>
@@ -277,7 +276,6 @@ const BuyerAnalytics = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
   );
 };
 
