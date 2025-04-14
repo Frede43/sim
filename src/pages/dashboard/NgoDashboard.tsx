@@ -46,11 +46,7 @@ const NgoDashboard = () => {
       label: 'Carte',
       href: '/dashboard/ngo/map',
     },
-    {
-      icon: DollarSign,
-      label: 'Financement',
-      href: '/dashboard/ngo/funding',
-    },
+ 
     {
       icon: BarChart3,
       label: 'Impact',

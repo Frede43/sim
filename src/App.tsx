@@ -58,6 +58,7 @@ import FinancialBorrowers from './pages/dashboard/financial/FinancialBorrowers';
 import FinancialLoans from './pages/dashboard/financial/FinancialLoans';
 import FinancialStats from './pages/dashboard/financial/FinancialStats';
 import FinancialNotifications from './pages/dashboard/financial/FinancialNotifications';
+import FinancialRisk from './pages/dashboard/financial/FinancialRisk';
 
 // NGO pages
 import NgoBeneficiaries from './pages/dashboard/ngo/NgoBeneficiaries';
@@ -131,6 +132,7 @@ const App = () => {
           <Route path="loans" element={<ProtectedRoute component={FinancialLoans} roles={[ROLES.FINANCIAL]} />} />
           <Route path="stats" element={<ProtectedRoute component={FinancialStats} roles={[ROLES.FINANCIAL]} />} />
           <Route path="notifications" element={<ProtectedRoute component={FinancialNotifications} roles={[ROLES.FINANCIAL]} />} />
+          <Route path="risk" element={<ProtectedRoute component={FinancialRisk} roles={[ROLES.FINANCIAL]} />} />
         </Route>
 
         {/* NGO routes */}
