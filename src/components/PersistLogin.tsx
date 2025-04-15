@@ -18,8 +18,11 @@ const PersistLogin = () => {
   const refreshToken = useCallback(async () => {
     try {
       const storedRefreshToken = localStorage.getItem('refresh_token');
-      if (!storedRefreshToken) {
-        throw new Error('No refresh token available');
+      const storedToken = localStorage.getItem('token');
+
+      // Si aucun token n'est stocké, pas besoin de rafraîchir
+      if (!storedRefreshToken || !storedToken) {
+        return false;
       }
 
       // Appeler l'API pour rafraîchir le token
@@ -38,10 +41,8 @@ const PersistLogin = () => {
       return false;
     } catch (error) {
       console.error('Token refresh failed:', error);
-      // Supprimer les tokens expirés
-      localStorage.removeItem('token');
-      localStorage.removeItem('refresh_token');
-      throw error;
+      // Ne pas supprimer les tokens ici, laissez authService gérer cela
+      return false;
     }
   }, [setUser]);
 
@@ -90,7 +91,8 @@ const PersistLogin = () => {
 
   // Vérifier l'authentification au chargement
   useEffect(() => {
-    if (!user) {
+    const token = localStorage.getItem('token');
+    if (!user && token) {
       verifyAuth();
     } else {
       setIsLoading(false);

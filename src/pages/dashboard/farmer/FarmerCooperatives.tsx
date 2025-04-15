@@ -17,47 +17,20 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import DashboardLayout from '@/components/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import { farmerApi } from '@/services/api/farmerApi';
 
-const FarmerCooperatives = () => {
+const FarmerCooperatives = (): JSX.Element => {
   const { user } = useAuth();
 
-  const sidebarItems = [
-    {
-      icon: Home,
-      label: 'Tableau de bord',
-      href: '/dashboard/farmer',
-    },
-    {
-      icon: Wheat,
-      label: 'Mes Produits',
-      href: '/dashboard/farmer/products',
-    },
-    {
-      icon: ShoppingCart,
-      label: 'Mes Ventes',
-      href: '/dashboard/farmer/sales',
-    },
-    {
-      icon: CreditCard,
-      label: 'Subventions',
-      href: '/dashboard/farmer/subsidies',
-    },
-    {
-      icon: TrendingUp,
-      label: 'Prix du Marché',
-      href: '/dashboard/farmer/market',
-    },
-    {
-      icon: Users,
-      label: 'Coopératives',
-      href: '/dashboard/farmer/cooperatives',
-      active: true,
-    },
-  ];
+  const { data: cooperatives, isLoading } = useQuery({
+    queryKey: ['cooperatives', user?.id],
+    queryFn: () => farmerApi.getCooperatives(user?.id as string),
+    enabled: !!user?.id
+  });
 
-  const myCooperatives = [
+  const myCooperatives = cooperatives?.joined || [
     {
       id: 1,
       name: "Coopérative Abahinzi",
@@ -69,7 +42,7 @@ const FarmerCooperatives = () => {
     }
   ];
 
-  const recommendedCooperatives = [
+  const recommendedCooperatives = cooperatives?.recommended || [
     {
       id: 2,
       name: "Association Rizicole Imbo",
@@ -99,7 +72,7 @@ const FarmerCooperatives = () => {
     }
   ];
 
-  const upcomingEvents = [
+  const upcomingEvents = cooperatives?.events || [
     {
       id: 1,
       title: "Formation sur les semences améliorées",
@@ -127,7 +100,7 @@ const FarmerCooperatives = () => {
   ];
 
   return (
-    <DashboardLayout sidebarItems={sidebarItems}>
+    <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">
         Coopératives Agricoles
       </h1>
@@ -331,7 +304,7 @@ const FarmerCooperatives = () => {
           </div>
         </CardContent>
       </Card>
-    </DashboardLayout>
+    </div>
   );
 };
 

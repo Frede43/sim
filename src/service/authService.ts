@@ -1,7 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import { LoginCredentials, RegisterData, AuthResponse, User } from '@/types/auth';
 
-const API_URL = 'http://localhost:8000/api';
+const API_URL = import.meta.env.VITE_API_URL;
 
 class AuthService {
   private setAuthHeader(token: string | null) {
@@ -10,6 +10,11 @@ class AuthService {
     } else {
       delete axios.defaults.headers.common['Authorization'];
     }
+  }
+
+  getAuthHeaders() {
+    const token = localStorage.getItem('token');
+    return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
@@ -129,7 +134,9 @@ class AuthService {
       const token = localStorage.getItem('token');
       if (!token) return null;
 
-      const response = await axios.get<User>(`${API_URL}/users/me/`);
+      const response = await axios.get<User>(`${API_URL}/users/me/`, {
+        headers: this.getAuthHeaders()
+      });
       return response.data;
     } catch (error) {
       this.logout();
@@ -154,4 +161,5 @@ class AuthService {
   }
 }
 
-export default new AuthService();
+export const authService = new AuthService();
+export default authService;

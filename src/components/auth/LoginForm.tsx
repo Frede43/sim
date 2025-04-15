@@ -18,7 +18,7 @@ export default function LoginForm({ onSuccess, onError }: LoginFormProps) {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [credentials, setCredentials] = useState<LoginCredentials>({
-    email: '',
+    username: '',
     password: '',
   });
   const [error, setError] = useState<string>('');
@@ -69,12 +69,13 @@ export default function LoginForm({ onSuccess, onError }: LoginFormProps) {
 
           <div className="space-y-2">
             <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="Email"
-              value={credentials.email}
+              id="username"
+              name="username"
+              type="text"
+              placeholder="Email ou nom d'utilisateur"
+              value={credentials.username}
               onChange={handleChange}
+              autoComplete="username"
               required
             />
           </div>
@@ -88,6 +89,7 @@ export default function LoginForm({ onSuccess, onError }: LoginFormProps) {
                 placeholder="Mot de passe"
                 value={credentials.password}
                 onChange={handleChange}
+                autoComplete="current-password"
                 required
               />
               <button

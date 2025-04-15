@@ -15,47 +15,51 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import DashboardLayout from '@/components/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import { farmerApi } from '@/services/api/farmerApi';
 
-const FarmerSubsidies = () => {
+interface ActiveSubsidy {
+  id: string;
+  name: string;
+  provider: string;
+  amount: string;
+  used: number;
+  total: number;
+  expiryDate: string;
+  status: string;
+}
+
+interface AvailableSubsidy {
+  id: string;
+  name: string;
+  provider: string;
+  type: string;
+  amount: string;
+  deadline: string;
+  eligibility: string;
+}
+
+interface PastSubsidy {
+  id: string;
+  name: string;
+  provider: string;
+  amount: string;
+  dateReceived: string;
+  dateUsed: string;
+  impact: string;
+}
+
+const FarmerSubsidies = (): JSX.Element => {
   const { user } = useAuth();
 
-  const sidebarItems = [
-    {
-      icon: Home,
-      label: 'Tableau de bord',
-      href: '/dashboard/farmer',
-    },
-    {
-      icon: Wheat,
-      label: 'Mes Produits',
-      href: '/dashboard/farmer/products',
-    },
-    {
-      icon: ShoppingCart,
-      label: 'Mes Ventes',
-      href: '/dashboard/farmer/sales',
-    },
-    {
-      icon: CreditCard,
-      label: 'Subventions',
-      href: '/dashboard/farmer/subsidies',
-      active: true,
-    },
-    {
-      icon: TrendingUp,
-      label: 'Prix du Marché',
-      href: '/dashboard/farmer/market',
-    },
-    {
-      icon: Users,
-      label: 'Coopératives',
-      href: '/dashboard/farmer/cooperatives',
-    },
-  ];
+  const { data: subsidies, isLoading } = useQuery({
+    queryKey: ['subsidies', user?.id],
+    queryFn: () => farmerApi.getSubsidies(user?.id as string),
+    enabled: !!user?.id
+  });
 
-  const activeSubsidies = [
+  const activeSubsidies = subsidies?.active || [
     {
       id: "SUB-001",
       name: "Subvention pour l'achat de semences améliorées",
@@ -78,7 +82,7 @@ const FarmerSubsidies = () => {
     }
   ];
 
-  const availableSubsidies = [
+  const availableSubsidies = subsidies?.available || [
     {
       id: "SUB-003",
       name: "Programme d'équipement agricole",
@@ -99,7 +103,7 @@ const FarmerSubsidies = () => {
     }
   ];
 
-  const pastSubsidies = [
+  const pastSubsidies = subsidies?.past || [
     {
       id: "SUB-005",
       name: "Subvention pour fertilisants",
@@ -121,7 +125,7 @@ const FarmerSubsidies = () => {
   ];
 
   return (
-    <DashboardLayout sidebarItems={sidebarItems}>
+    <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">
         Subventions Agricoles
       </h1>
@@ -300,7 +304,7 @@ const FarmerSubsidies = () => {
           </div>
         </CardContent>
       </Card>
-    </DashboardLayout>
+    </div>
   );
 };
 

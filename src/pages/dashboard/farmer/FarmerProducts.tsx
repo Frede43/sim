@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Wheat, 
@@ -6,8 +5,7 @@ import {
   Pencil, 
   Trash2, 
   AlertTriangle,
-  ShoppingCart,
-  X
+  ShoppingCart
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,8 +18,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-  DialogClose
 } from '@/components/ui/dialog';
 import {
   Table,
@@ -41,7 +37,6 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -50,121 +45,35 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useToast } from "@/hooks/use-toast";
-import DashboardLayout from '@/components/DashboardLayout';
-import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { farmerApi } from "@/services/api/farmerApi";
+import type { Product } from "@/services/api/farmerApi";
 
-// Schema de validation pour le formulaire de produit
+// Schéma de validation du formulaire
 const productFormSchema = z.object({
-  name: z.string().min(2, {
-    message: "Le nom doit contenir au moins 2 caractères",
-  }),
-  quantity: z.string().min(1, {
-    message: "La quantité est requise",
-  }),
-  quality: z.string().min(1, {
-    message: "La qualité est requise",
-  }),
-  price: z.string().min(1, {
-    message: "Le prix est requis",
-  }),
-  date: z.string().min(1, {
-    message: "La date est requise",
-  }),
-  status: z.string().min(1, {
-    message: "Le statut est requis",
-  }),
+  name: z.string().min(2, { message: "Le nom doit contenir au moins 2 caractères" }),
+  quantity: z.string().min(1, { message: "La quantité est requise" }),
+  quality: z.string().min(1, { message: "La qualité est requise" }),
+  price: z.string().min(1, { message: "Le prix est requis" }),
+  date: z.string().min(1, { message: "La date est requise" }),
+  status: z.string().min(1, { message: "Le statut est requis" }),
   description: z.string().optional(),
 });
 
-const FarmerProducts = () => {
+type ProductFormData = z.infer<typeof productFormSchema>;
+
+const FarmerProducts = (): JSX.Element => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [currentProduct, setCurrentProduct] = useState(null);
-  
-  // État local pour les produits
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      name: 'Maïs',
-      quantity: '500 kg',
-      quality: 'Premium',
-      price: '900 BIF/kg',
-      date: '15/07/2023',
-      status: 'Disponible',
-      description: 'Maïs de haute qualité cultivé dans la région de Gitega.'
-    },
-    {
-      id: 2,
-      name: 'Haricots',
-      quantity: '300 kg',
-      quality: 'Standard',
-      price: '1200 BIF/kg',
-      date: '18/07/2023',
-      status: 'Disponible',
-      description: 'Haricots frais récoltés la semaine dernière.'
-    },
-    {
-      id: 3,
-      name: 'Tomates',
-      quantity: '200 kg',
-      quality: 'Premium',
-      price: '1500 BIF/kg',
-      date: '20/07/2023',
-      status: 'Réservé',
-      description: 'Tomates mûres et juteuses, idéales pour la cuisine.'
-    },
-    {
-      id: 4,
-      name: 'Pommes de terre',
-      quantity: '400 kg',
-      quality: 'Standard',
-      price: '700 BIF/kg',
-      date: '22/07/2023',
-      status: 'Disponible',
-      description: 'Pommes de terre de taille moyenne, parfaites pour la cuisson.'
-    }
-  ]);
-  
-  const sidebarItems = [
-    {
-      icon: Wheat,
-      label: 'Tableau de bord',
-      href: '/dashboard/farmer',
-    },
-    {
-      icon: Wheat,
-      label: 'Mes Produits',
-      href: '/dashboard/farmer/products',
-      active: true,
-    },
-    {
-      icon: ShoppingCart,
-      label: 'Mes Ventes',
-      href: '/dashboard/farmer/sales',
-    },
-    {
-      icon: Wheat,
-      label: 'Subventions',
-      href: '/dashboard/farmer/subsidies',
-    },
-    {
-      icon: Wheat,
-      label: 'Prix du Marché',
-      href: '/dashboard/farmer/market',
-    },
-    {
-      icon: Wheat,
-      label: 'Coopératives',
-      href: '/dashboard/farmer/cooperatives',
-    },
-  ];
+  const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
 
-  // Formulaire d'ajout/édition de produit
-  const form = useForm({
+  const form = useForm<Omit<Product, 'id' | 'farmerId'>>({
     resolver: zodResolver(productFormSchema),
     defaultValues: {
       name: "",
@@ -177,8 +86,56 @@ const FarmerProducts = () => {
     },
   });
 
+  // Requête pour récupérer les produits
+  const { data: products = [], isLoading, error } = useQuery<Product[]>({
+    queryKey: ['products', user?.id],
+    queryFn: () => farmerApi.getProducts(user?.id as string),
+    enabled: !!user?.id
+  });
+
+  // Mutations pour les opérations CRUD
+  const addProductMutation = useMutation<void, Error, Omit<Product, 'id' | 'farmerId'>>({
+    mutationFn: (data: Omit<Product, 'id' | 'farmerId'>) => farmerApi.addProduct(user?.id as string, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products", user?.id] });
+      setIsAddDialogOpen(false);
+      toast({
+        title: "Succès",
+        description: "Le produit a été ajouté avec succès",
+      });
+    },
+  });
+
+  const updateProductMutation = useMutation<void, Error, { productId: string; updates: Partial<Product> }>({
+    mutationFn: ({ productId, updates }: { productId: string; updates: Partial<Product> }) =>
+      farmerApi.updateProduct(user?.id as string, productId, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products", user?.id] });
+      setIsEditDialogOpen(false);
+      toast({
+        title: "Succès",
+        description: "Le produit a été mis à jour avec succès",
+      });
+    },
+  });
+
+  const deleteProductMutation = useMutation<void, Error, string>({
+    mutationFn: (productId: string) => farmerApi.deleteProduct(user?.id as string, productId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products", user?.id] });
+      setIsDeleteDialogOpen(false);
+      toast({
+        title: "Succès",
+        description: "Le produit a été supprimé avec succès",
+      });
+    },
+  });
+
+  if (isLoading) return <div>Chargement...</div>;
+  if (error) return <div>Une erreur est survenue</div>;
+
   // Gestion de l'ouverture du formulaire d'édition
-  const handleEdit = (product) => {
+  const handleEditClick = (product: Product) => {
     setCurrentProduct(product);
     form.reset({
       name: product.name,
@@ -193,49 +150,43 @@ const FarmerProducts = () => {
   };
 
   // Gestion de l'ouverture du dialogue de suppression
-  const handleDeleteClick = (product) => {
+  const handleDeleteClick = (product: Product) => {
     setCurrentProduct(product);
     setIsDeleteDialogOpen(true);
   };
 
-  // Ajout d'un nouveau produit
-  const handleAddProduct = (data) => {
-    const newProduct = {
-      id: products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1,
-      ...data
-    };
-    setProducts([...products, newProduct]);
-    toast({
-      title: "Produit ajouté",
-      description: `${data.name} a été ajouté avec succès.`,
-    });
-    setIsAddDialogOpen(false);
-    form.reset();
-  };
+  // Soumission du formulaire
+  const onSubmit = async (data: Omit<Product, 'id' | 'farmerId'>) => {
+    try {
+      const productData = {
+        ...data,
+        farmerId: user?.id as string,
+      };
 
-  // Mise à jour d'un produit existant
-  const handleUpdateProduct = (data) => {
-    const updatedProducts = products.map(product => 
-      product.id === currentProduct.id ? { ...product, ...data } : product
-    );
-    setProducts(updatedProducts);
-    toast({
-      title: "Produit mis à jour",
-      description: `${data.name} a été mis à jour avec succès.`,
-    });
-    setIsEditDialogOpen(false);
+      if (currentProduct && isEditDialogOpen) {
+        // Mode édition
+        await updateProductMutation.mutateAsync({
+          productId: currentProduct.id,
+          updates: productData
+        });
+      } else {
+        // Mode ajout
+        await addProductMutation.mutateAsync(productData);
+      }
+    } catch (error) {
+      toast({
+        title: 'Erreur',
+        description: 'Une erreur est survenue lors de l\'opération',
+        variant: 'destructive'
+      });
+    }
   };
 
   // Suppression d'un produit
   const handleDeleteProduct = () => {
-    const updatedProducts = products.filter(product => product.id !== currentProduct.id);
-    setProducts(updatedProducts);
-    toast({
-      title: "Produit supprimé",
-      description: `${currentProduct.name} a été supprimé avec succès.`,
-      variant: "destructive",
-    });
-    setIsDeleteDialogOpen(false);
+    if (currentProduct) {
+      deleteProductMutation.mutate(currentProduct.id);
+    }
   };
 
   // Préparation du formulaire pour un nouveau produit
@@ -253,7 +204,7 @@ const FarmerProducts = () => {
   };
 
   return (
-    <DashboardLayout sidebarItems={sidebarItems}>
+    <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Mes Produits Agricoles</h1>
         <Button className="bg-agri hover:bg-agri/90" onClick={handleAddClick}>
@@ -273,7 +224,7 @@ const FarmerProducts = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Produit</TableHead>
+                  <TableHead>Nom</TableHead>
                   <TableHead>Quantité</TableHead>
                   <TableHead>Qualité</TableHead>
                   <TableHead>Prix</TableHead>
@@ -283,7 +234,7 @@ const FarmerProducts = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {products.map((product) => (
+                {products?.map((product) => (
                   <TableRow key={product.id}>
                     <TableCell>
                       <div className="flex items-center">
@@ -296,29 +247,30 @@ const FarmerProducts = () => {
                     <TableCell>{product.price}</TableCell>
                     <TableCell>{product.date}</TableCell>
                     <TableCell>
-                      <span className={`inline-block px-2 py-1 rounded-full text-xs ${
-                        product.status === 'Disponible' 
-                          ? 'bg-green-100 text-green-800' 
-                          : product.status === 'Réservé'
-                            ? 'bg-amber-100 text-amber-800'
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          product.status === 'Disponible'
+                            ? 'bg-green-100 text-green-800'
+                            : product.status === 'Réservé'
+                            ? 'bg-yellow-100 text-yellow-800'
                             : 'bg-red-100 text-red-800'
-                      }`}>
+                        }`}
+                      >
                         {product.status}
                       </span>
                     </TableCell>
                     <TableCell>
-                      <div className="flex space-x-2">
-                        <Button 
-                          variant="outline" 
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
                           size="icon"
-                          onClick={() => handleEdit(product)}
+                          onClick={() => handleEditClick(product)}
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          variant="outline" 
-                          size="icon" 
-                          className="text-red-500"
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           onClick={() => handleDeleteClick(product)}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -333,107 +285,18 @@ const FarmerProducts = () => {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <AlertTriangle className="h-5 w-5 text-amber-500 mr-2" />
-              Produits à surveiller
-            </CardTitle>
-            <CardDescription>
-              Produits nécessitant votre attention
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="bg-amber-50 p-4 rounded-lg">
-                <div className="flex items-start">
-                  <div className="flex-1">
-                    <h4 className="font-medium">Tomates</h4>
-                    <p className="text-sm text-amber-700 mt-1">
-                      Date de péremption proche (5 jours restants)
-                    </p>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    Vendre rapidement
-                  </Button>
-                </div>
-              </div>
-              <div className="bg-red-50 p-4 rounded-lg">
-                <div className="flex items-start">
-                  <div className="flex-1">
-                    <h4 className="font-medium">Pommes de terre</h4>
-                    <p className="text-sm text-red-700 mt-1">
-                      Prix en baisse sur le marché (-15% cette semaine)
-                    </p>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    Ajuster le prix
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Opportunités de marché</CardTitle>
-            <CardDescription>
-              Demandes actuelles sur le marché
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="bg-green-50 p-4 rounded-lg">
-                <div className="flex items-start">
-                  <div className="flex-1">
-                    <h4 className="font-medium">Demande de maïs</h4>
-                    <p className="text-sm text-green-700 mt-1">
-                      La coopérative Abahinzi recherche 1000kg de maïs
-                    </p>
-                    <p className="text-sm font-medium text-green-800 mt-1">
-                      Prix offert: 950 BIF/kg
-                    </p>
-                  </div>
-                  <Button variant="outline" size="sm" className="text-green-600 border-green-600 hover:bg-green-50">
-                    Postuler
-                  </Button>
-                </div>
-              </div>
-              <div className="bg-green-50 p-4 rounded-lg">
-                <div className="flex items-start">
-                  <div className="flex-1">
-                    <h4 className="font-medium">Demande de haricots</h4>
-                    <p className="text-sm text-green-700 mt-1">
-                      Exportateur recherche 500kg de haricots de qualité
-                    </p>
-                    <p className="text-sm font-medium text-green-800 mt-1">
-                      Prix offert: 1300 BIF/kg
-                    </p>
-                  </div>
-                  <Button variant="outline" size="sm" className="text-green-600 border-green-600 hover:bg-green-50">
-                    Postuler
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Dialogue d'ajout de produit */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+      {/* Dialogue d'ajout/édition de produit */}
+      <Dialog open={isAddDialogOpen || isEditDialogOpen} onOpenChange={isAddDialogOpen ? setIsAddDialogOpen : setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Ajouter un nouveau produit</DialogTitle>
+            <DialogTitle>{isAddDialogOpen ? 'Ajouter un nouveau produit' : 'Modifier le produit'}</DialogTitle>
             <DialogDescription>
-              Complétez le formulaire pour ajouter un nouveau produit agricole.
+              {isAddDialogOpen ? 'Complétez le formulaire pour ajouter un nouveau produit agricole.' : 'Modifiez les informations du produit.'}
             </DialogDescription>
           </DialogHeader>
           
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleAddProduct)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="name"
@@ -565,157 +428,9 @@ const FarmerProducts = () => {
               />
               
               <DialogFooter>
-                <Button type="submit" className="bg-agri hover:bg-agri/90">Ajouter</Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialogue d'édition de produit */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Modifier le produit</DialogTitle>
-            <DialogDescription>
-              Modifiez les informations du produit.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleUpdateProduct)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nom du produit</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: Maïs, Haricots..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="quantity"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Quantité</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ex: 500 kg" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="price"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Prix</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ex: 900 BIF/kg" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="quality"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Qualité</FormLabel>
-                      <Select 
-                        onValueChange={field.onChange} 
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Sélectionnez la qualité" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Premium">Premium</SelectItem>
-                          <SelectItem value="Standard">Standard</SelectItem>
-                          <SelectItem value="Économique">Économique</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Statut</FormLabel>
-                      <Select 
-                        onValueChange={field.onChange} 
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Sélectionnez le statut" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Disponible">Disponible</SelectItem>
-                          <SelectItem value="Réservé">Réservé</SelectItem>
-                          <SelectItem value="Vendu">Vendu</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={form.control}
-                name="date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Date de récolte</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description (optionnelle)</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Décrivez votre produit..." 
-                        className="min-h-[80px]"
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <DialogFooter>
-                <Button type="submit" className="bg-agri hover:bg-agri/90">Mettre à jour</Button>
+                <Button type="submit" className="bg-agri hover:bg-agri/90">
+                  {isAddDialogOpen ? 'Ajouter' : 'Mettre à jour'}
+                </Button>
               </DialogFooter>
             </form>
           </Form>
@@ -724,34 +439,24 @@ const FarmerProducts = () => {
 
       {/* Dialogue de confirmation de suppression */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Confirmer la suppression</DialogTitle>
             <DialogDescription>
-              Êtes-vous sûr de vouloir supprimer ce produit ? Cette action est irréversible.
+              Êtes-vous sûr de vouloir supprimer {currentProduct?.name} ? Cette action est irréversible.
             </DialogDescription>
           </DialogHeader>
-          
-          {currentProduct && (
-            <div className="py-4">
-              <p className="font-medium">{currentProduct.name}</p>
-              <p className="text-sm text-muted-foreground">Quantité: {currentProduct.quantity}</p>
-            </div>
-          )}
-          
-          <DialogFooter className="flex space-x-2 sm:space-x-0">
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>Annuler</Button>
-            <Button 
-              variant="destructive" 
-              onClick={handleDeleteProduct}
-              className="bg-red-500 hover:bg-red-600"
-            >
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Annuler
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteProduct}>
               Supprimer
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </DashboardLayout>
+    </div>
   );
 };
 

@@ -14,45 +14,13 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import DashboardLayout from '@/components/DashboardLayout';
+import FarmerDashboardLayout from '@/layouts/FarmerDashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 
-const FarmerMarket = () => {
+const FarmerMarket = (): JSX.Element => {
   const { user } = useAuth();
 
-  const sidebarItems = [
-    {
-      icon: Home,
-      label: 'Tableau de bord',
-      href: '/dashboard/farmer',
-    },
-    {
-      icon: Wheat,
-      label: 'Mes Produits',
-      href: '/dashboard/farmer/products',
-    },
-    {
-      icon: ShoppingCart,
-      label: 'Mes Ventes',
-      href: '/dashboard/farmer/sales',
-    },
-    {
-      icon: CreditCard,
-      label: 'Subventions',
-      href: '/dashboard/farmer/subsidies',
-    },
-    {
-      icon: TrendingUp,
-      label: 'Prix du Marché',
-      href: '/dashboard/farmer/market',
-      active: true,
-    },
-    {
-      icon: Users,
-      label: 'Coopératives',
-      href: '/dashboard/farmer/cooperatives',
-    },
-  ];
+
 
   const marketPrices = [
     {
@@ -161,7 +129,7 @@ const FarmerMarket = () => {
   ];
 
   return (
-    <DashboardLayout sidebarItems={sidebarItems}>
+    <FarmerDashboardLayout>
       <h1 className="text-2xl font-bold mb-6">
         Prix du Marché Agricole
       </h1>
@@ -400,7 +368,7 @@ const FarmerMarket = () => {
           </div>
         </CardContent>
       </Card>
-    </DashboardLayout>
+    </FarmerDashboardLayout>
   );
 };
 

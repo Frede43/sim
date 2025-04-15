@@ -1,6 +1,6 @@
 
 import React from 'react';
-import DashboardLayout from '@/components/DashboardLayout';
+import FarmerDashboardLayout from '@/layouts/FarmerDashboardLayout';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { ChevronRight, TrendingUp, BarChart3, PieChart as PieChartIcon, Calendar } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -46,16 +46,8 @@ const priceComparisonData = [
 const FarmerAnalytics = () => {
   const navigate = useNavigate();
   
-  const sidebarItems = [
-    { icon: TrendingUp, label: 'Tableau de bord', href: '/dashboard/farmer', active: false },
-    { icon: BarChart3, label: 'Mes produits', href: '/dashboard/farmer/products', active: false },
-    { icon: PieChartIcon, label: 'Mes ventes', href: '/dashboard/farmer/sales', active: false },
-    { icon: Calendar, label: 'Marché', href: '/dashboard/farmer/market', active: false },
-    { icon: TrendingUp, label: 'Analyses', href: '/dashboard/farmer/analytics', active: true },
-  ];
-
   return (
-    <DashboardLayout sidebarItems={sidebarItems}>
+    <FarmerDashboardLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold tracking-tight">Analyses et Statistiques</h1>
@@ -163,7 +155,7 @@ const FarmerAnalytics = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
+    </FarmerDashboardLayout>
   );
 };
 

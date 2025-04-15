@@ -14,47 +14,40 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import DashboardLayout from '@/components/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import { farmerApi } from '@/services/api/farmerApi';
 
-const FarmerSales = () => {
+interface Sale {
+  id: string;
+  date: string;
+  product: string;
+  quantity: string;
+  buyer: string;
+  amount: string;
+  status: string;
+}
+
+interface Order {
+  id: string;
+  date: string;
+  product: string;
+  quantity: string;
+  buyer: string;
+  amount: string;
+  status: string;
+}
+
+const FarmerSales = (): JSX.Element => {
   const { user } = useAuth();
 
-  const sidebarItems = [
-    {
-      icon: Home,
-      label: 'Tableau de bord',
-      href: '/dashboard/farmer',
-    },
-    {
-      icon: Wheat,
-      label: 'Mes Produits',
-      href: '/dashboard/farmer/products',
-    },
-    {
-      icon: ShoppingCart,
-      label: 'Mes Ventes',
-      href: '/dashboard/farmer/sales',
-      active: true,
-    },
-    {
-      icon: CreditCard,
-      label: 'Subventions',
-      href: '/dashboard/farmer/subsidies',
-    },
-    {
-      icon: TrendingUp,
-      label: 'Prix du Marché',
-      href: '/dashboard/farmer/market',
-    },
-    {
-      icon: Users,
-      label: 'Coopératives',
-      href: '/dashboard/farmer/cooperatives',
-    },
-  ];
+  const { data: sales, isLoading } = useQuery({
+    queryKey: ['sales', user?.id],
+    queryFn: () => farmerApi.getSales(user?.id as string),
+    enabled: !!user?.id
+  });
 
-  const recentSales = [
+  const recentSales = sales || [
     {
       id: "S-001",
       date: "15/07/2023",
@@ -102,7 +95,7 @@ const FarmerSales = () => {
     }
   ];
 
-  const pendingOrders = [
+  const pendingOrders: Order[] = [
     {
       id: "O-001",
       date: "01/08/2023",
@@ -124,7 +117,7 @@ const FarmerSales = () => {
   ];
 
   return (
-    <DashboardLayout sidebarItems={sidebarItems}>
+    <div className="p-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <h1 className="text-2xl font-bold">Mes Ventes</h1>
         <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
@@ -293,7 +286,7 @@ const FarmerSales = () => {
           )}
         </CardContent>
       </Card>
-    </DashboardLayout>
+    </div>
   );
 };
 

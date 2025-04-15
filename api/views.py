@@ -2,6 +2,11 @@ from rest_framework import viewsets, permissions, status, filters
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.db.models import Sum
+from django.utils import timezone
+from datetime import timedelta
+from .permissions import IsFarmer
+from .models import Sale, Order, SubsidyApplication, MarketPrice, Subsidy
 from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate
 from django_filters.rest_framework import DjangoFilterBackend
@@ -27,50 +32,151 @@ from .serializers import (
 
 User = get_user_model()
 
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated, IsFarmer])
+def farmer_dashboard(request):
+    try:
+        user = request.user
+        today = timezone.now()
+        start_of_month = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        
+        # Revenus du mois
+        monthly_sales = Sale.objects.filter(
+            seller=user,
+            created_at__gte=start_of_month,
+            created_at__lte=today
+        ).aggregate(total=Sum('amount'))
+        
+        # Commandes actives
+        active_orders = Order.objects.filter(
+            orderitem__product__seller=user,
+            status__in=['pending', 'processing']
+        )
+        
+        # Subventions disponibles
+        available_subsidies = SubsidyApplication.objects.filter(
+            farmer=user,
+            status='approved',
+            expiry_date__gte=today
+        ).aggregate(total=Sum('amount'))
+        
+        # Ventes récentes
+        recent_sales = Sale.objects.filter(
+            seller=user
+        ).order_by('-created_at')[:5]
+        
+        # Prix du marché
+        market_prices = MarketPrice.objects.all().order_by('-updated_at')[:4]
+        
+        # Opportunités de financement
+        funding_opportunities = Subsidy.objects.filter(
+            application_deadline__gte=today
+        ).order_by('application_deadline')[:2]
+        
+        # Préparation de la réponse
+        response_data = {
+            'monthlyRevenue': monthly_sales['total'] or 0,
+            'activeOrders': {
+                'total': active_orders.count(),
+                'pendingDelivery': active_orders.filter(status='processing').count()
+            },
+            'availableSubsidies': {
+                'amount': available_subsidies['total'] or 0,
+                'expiryDate': next(
+                    (s.expiry_date.strftime('%d/%m/%Y') 
+                     for s in SubsidyApplication.objects.filter(
+                         farmer=user, 
+                         status='approved', 
+                         expiry_date__gte=today
+                     ).order_by('expiry_date')
+                    ), 
+                    None
+                )
+            },
+            'recentSales': [
+                {
+                    'id': sale.id,
+                    'product': sale.product.name,
+                    'quantity': sale.quantity,
+                    'unit': sale.product.unit,
+                    'date': sale.created_at.strftime('%d/%m/%Y'),
+                    'amount': sale.amount,
+                    'status': sale.get_status_display()
+                } for sale in recent_sales
+            ],
+            'marketPrices': [
+                {
+                    'product': price.product.name,
+                    'price': price.price,
+                    'priceChange': price.price_change
+                } for price in market_prices
+            ],
+            'fundingOpportunities': [
+                {
+                    'title': subsidy.name,
+                    'provider': subsidy.provider,
+                    'amount': subsidy.amount,
+                    'deadline': subsidy.application_deadline.strftime('%d/%m/%Y')
+                } for subsidy in funding_opportunities
+            ]
+        }
+        
+        return Response(response_data)
+    except Exception as e:
+        return Response(
+            {'error': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def login_view(request):
-    print("Données reçues:", request.data)  # Debug log
+    print('\nDonnées de connexion reçues:', request.data)
     serializer = LoginSerializer(data=request.data)
-    if serializer.is_valid():
-        email = serializer.validated_data['email']
-        password = serializer.validated_data['password']
-        
-        print(f"Tentative de connexion pour l'email: {email}")  # Debug log
-        
-        # Essayons d'abord de trouver l'utilisateur
+    
+    if not serializer.is_valid():
+        print('Erreurs de validation:', serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    username = serializer.validated_data['username']
+    password = serializer.validated_data['password']
+    print(f'Tentative de connexion avec username: {username}')
+    
+    # Vérifier si l'utilisateur existe
+    UserModel = get_user_model()
+    try:
+        user_db = UserModel.objects.get(email=username)
+        print(f'Utilisateur trouvé avec email: {user_db.email}')
+    except UserModel.DoesNotExist:
         try:
-            user = User.objects.get(email=email)
-            print(f"Utilisateur trouvé: {user.email}, {user.username}")  # Debug log
-            
-            # Tentative d'authentification
-            authenticated_user = authenticate(request, username=user.username, password=password)
-            print(f"Résultat de l'authentification: {authenticated_user}")  # Debug log
-            
-            if authenticated_user:
-                refresh = RefreshToken.for_user(authenticated_user)
-                user_serializer = UserSerializer(authenticated_user)
-                
-                return Response({
-                    'access': str(refresh.access_token),
-                    'refresh': str(refresh),
-                    'user': user_serializer.data
-                })
-            else:
-                print("Échec de l'authentification: mot de passe incorrect")  # Debug log
-                return Response(
-                    {'detail': 'Mot de passe incorrect'}, 
-                    status=status.HTTP_401_UNAUTHORIZED
-                )
-        except User.DoesNotExist:
-            print(f"Aucun utilisateur trouvé avec l'email: {email}")  # Debug log
+            user_db = UserModel.objects.get(username=username)
+            print(f'Utilisateur trouvé avec username: {user_db.username}')
+        except UserModel.DoesNotExist:
+            print('Aucun utilisateur trouvé')
             return Response(
-                {'detail': 'Aucun utilisateur trouvé avec cet email'}, 
+                {'error': 'Utilisateur non trouvé'},
                 status=status.HTTP_401_UNAUTHORIZED
             )
+    
+    # Tenter l'authentification
+    user = authenticate(request, username=username, password=password)
+    print(f'Résultat de l\'authentification: {user}')
+    
+    if user is not None:
+        refresh = RefreshToken.for_user(user)
+        response_data = {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+            'user': UserSerializer(user).data
+        }
+        print('Connexion réussie, données renvoyées:', response_data)
+        return Response(response_data)
     else:
-        print("Erreurs de validation:", serializer.errors)  # Debug log
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        print('Échec de l\'authentification')
+        return Response(
+            {'error': 'Mot de passe incorrect'},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -88,41 +194,41 @@ class UserViewSet(viewsets.ModelViewSet):
             user = serializer.save()
             refresh = RefreshToken.for_user(user)
             return Response({
-                'user': serializer.data,
+                'refresh': str(refresh),
                 'access': str(refresh.access_token),
-                'refresh': str(refresh)
-            }, status=status.HTTP_201_CREATED)
+                'user': serializer.data
+            })
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['GET'])
     def me(self, request):
-        serializer = self.get_serializer(request.user)
+        serializer = UserSerializer(request.user)
         return Response(serializer.data)
 
 # Permissions personnalisées
 class IsFarmer(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user.role == 'farmer'
+        return request.user and request.user.role == 'farmer'
 
 class IsCooperative(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user.role == 'cooperative'
+        return request.user and request.user.role == 'cooperative'
 
 class IsGovernment(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user.role == 'government'
+        return request.user and request.user.role == 'government'
 
 class IsNGO(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user.role == 'ngo'
+        return request.user and request.user.role == 'ngo'
 
 class IsFinancial(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user.role == 'financial'
+        return request.user and request.user.role == 'financial'
 
 class IsBuyer(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user.role == 'buyer'
+        return request.user and request.user.role == 'buyer'
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
@@ -141,35 +247,29 @@ class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['seller_type', 'management_type', 'category', 'region']
+    search_fields = ['name', 'description']
+    ordering_fields = ['name', 'price', 'created_at']
 
     def get_queryset(self):
         queryset = Product.objects.all()
-        seller_type = self.request.query_params.get('seller_type', None)
-        management_type = self.request.query_params.get('management_type', None)
-        category = self.request.query_params.get('category', None)
+        
+        # Filtrage par prix
         min_price = self.request.query_params.get('min_price', None)
         max_price = self.request.query_params.get('max_price', None)
-        search = self.request.query_params.get('search', None)
-
-        if seller_type:
-            queryset = queryset.filter(seller_type=seller_type)
-        if management_type:
-            queryset = queryset.filter(management_type=management_type)
-        if category:
-            queryset = queryset.filter(category=category)
-        if min_price:
+        
+        if min_price is not None:
             queryset = queryset.filter(price__gte=min_price)
-        if max_price:
+        
+        if max_price is not None:
             queryset = queryset.filter(price__lte=max_price)
-        if search:
-            queryset = queryset.filter(
-                Q(name__icontains=search) |
-                Q(description__icontains=search) |
-                Q(seller__username__icontains=search) |
-                Q(cooperative__name__icontains=search)
-            )
-
+        
+        # Filtrage par disponibilité
+        available = self.request.query_params.get('available', None)
+        if available is not None:
+            queryset = queryset.filter(quantity__gt=0)
+        
         return queryset
 
     def get_serializer_class(self):
@@ -178,30 +278,12 @@ class ProductViewSet(viewsets.ModelViewSet):
         return ProductSerializer
 
     def perform_create(self, serializer):
-        # Définir automatiquement le type de vendeur en fonction du rôle de l'utilisateur
-        seller_type = 'cooperative' if self.request.user.role == 'cooperative' else 'farmer'
-        serializer.save(
-            seller=self.request.user,
-            seller_type=seller_type
-        )
-
-class CooperativeProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.filter(seller_type='cooperative')
-    serializer_class = ProductSerializer
-    permission_classes = [permissions.IsAuthenticated, IsCooperative]
-    
-    def get_queryset(self):
-        return Product.objects.filter(
-            cooperative_id=self.request.user.managed_cooperative.id
-        )
-    
-    def perform_create(self, serializer):
-        serializer.save(
-            seller=self.request.user,
-            seller_type='cooperative',
-            cooperative=self.request.user.managed_cooperative,
-            management_type='collective'
-        )
+        if self.request.user.role == 'farmer':
+            serializer.save(seller=self.request.user, seller_type='farmer')
+        elif self.request.user.role == 'cooperative':
+            serializer.save(seller=self.request.user, seller_type='cooperative')
+        else:
+            raise PermissionDenied('Only farmers and cooperatives can create products')
 
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
@@ -212,96 +294,66 @@ class OrderViewSet(viewsets.ModelViewSet):
     ordering_fields = ['created_at', 'total_amount']
 
     def get_permissions(self):
-        if self.action in ['create']:
-            return [permissions.IsAuthenticated() & IsBuyer()]
-        if self.action in ['update', 'partial_update', 'destroy']:
-            # Seuls les acheteurs peuvent modifier leurs propres commandes
+        if self.action == 'create':
             return [permissions.IsAuthenticated() & IsBuyer()]
         return [permissions.IsAuthenticated()]
-    
+
     def get_queryset(self):
-        queryset = Order.objects.all()
-        
-        # Si l'utilisateur est un acheteur, montrer seulement ses commandes
-        if self.request.user.role == 'buyer':
-            queryset = queryset.filter(buyer=self.request.user)
-        
-        # Si l'utilisateur est un agriculteur, montrer les commandes de ses produits
-        elif self.request.user.role == 'farmer':
-            # Rechercher des commandes contenant les produits de l'agriculteur
-            products = Product.objects.filter(farmer=self.request.user)
-            order_items = OrderItem.objects.filter(product__in=products)
-            order_ids = order_items.values_list('order_id', flat=True)
-            queryset = queryset.filter(id__in=order_ids)
-        
-        # Filtrage des commandes
-        status = self.request.query_params.get('status', None)
-        if status:
-            queryset = queryset.filter(status=status)
-        
-        return queryset
-    
+        user = self.request.user
+        if user.role == 'buyer':
+            return Order.objects.filter(buyer=user)
+        elif user.role == 'farmer':
+            return Order.objects.filter(orderitem__product__seller=user)
+        elif user.role == 'cooperative':
+            return Order.objects.filter(orderitem__product__seller=user)
+        return Order.objects.none()
+
     def perform_create(self, serializer):
-        # Assigne automatiquement l'acheteur actuel
         serializer.save(buyer=self.request.user)
-    
-    @action(detail=False, methods=['get'])
+
+    @action(detail=False, methods=['GET'])
     def my_orders(self, request):
-        if request.user.role == 'buyer':
-            orders = Order.objects.filter(buyer=request.user)
-            serializer = self.get_serializer(orders, many=True)
-            return Response(serializer.data)
-        return Response({"detail": "Vous n'êtes pas autorisé à effectuer cette action."}, 
-                        status=status.HTTP_403_FORBIDDEN)
+        orders = self.get_queryset()
+        serializer = self.get_serializer(orders, many=True)
+        return Response(serializer.data)
+
+class CooperativeProductViewSet(viewsets.ModelViewSet):
+    queryset = Product.objects.filter(seller_type='cooperative')
+    serializer_class = ProductSerializer
+    permission_classes = [permissions.IsAuthenticated, IsCooperative]
+
+    def get_queryset(self):
+        return Product.objects.filter(seller=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(seller=self.request.user, seller_type='cooperative')
 
 class SaleViewSet(viewsets.ModelViewSet):
     queryset = Sale.objects.all()
     serializer_class = SaleSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['buyer_name', 'product__name', 'status']
-    ordering_fields = ['sale_date', 'amount']
+    search_fields = ['product__name', 'seller__username', 'buyer__username']
+    ordering_fields = ['created_at', 'amount']
 
-    def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            # Seuls les agriculteurs et les coopératives peuvent gérer les ventes
-            return [permissions.IsAuthenticated() & (IsFarmer() | IsCooperative())]
-        return [permissions.IsAuthenticated()]
-    
     def get_queryset(self):
-        queryset = Sale.objects.all()
-        
-        # Si l'utilisateur est un agriculteur, montrer seulement ses ventes
-        if self.request.user.role == 'farmer':
-            queryset = queryset.filter(farmer=self.request.user)
-        
-        # Filtrage des ventes
-        status = self.request.query_params.get('status', None)
-        if status:
-            queryset = queryset.filter(status=status)
-        
-        return queryset
-    
+        user = self.request.user
+        if user.role == 'buyer':
+            return Sale.objects.filter(buyer=user)
+        elif user.role in ['farmer', 'cooperative']:
+            return Sale.objects.filter(seller=user)
+        return Sale.objects.none()
+
     def perform_create(self, serializer):
-        # Assigne automatiquement l'agriculteur actuel
-        serializer.save(farmer=self.request.user)
-    
-    @action(detail=False, methods=['get'])
-    def my_sales(self, request):
-        if request.user.role in ['farmer', 'cooperative']:
-            sales = Sale.objects.filter(farmer=request.user)
-            serializer = self.get_serializer(sales, many=True)
-            return Response(serializer.data)
-        return Response({"detail": "Vous n'êtes pas autorisé à effectuer cette action."}, 
-                        status=status.HTTP_403_FORBIDDEN)
+        serializer.save(seller=self.request.user)
 
 class CooperativeViewSet(viewsets.ModelViewSet):
     queryset = Cooperative.objects.all()
     serializer_class = CooperativeDetailSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['name', 'region', 'description']
-    ordering_fields = ['name', 'founded_date']
+    search_fields = ['name', 'region']
+    ordering_fields = ['name', 'created_at']
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -310,167 +362,75 @@ class CooperativeViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ['update', 'partial_update', 'destroy']:
-            return [permissions.IsAuthenticated() & (IsCooperative() | permissions.IsAdminUser())]
+            return [permissions.IsAuthenticated() & IsCooperative()]
         return [permissions.IsAuthenticated()]
-
-    def perform_create(self, serializer):
-        if self.request.user.role != 'cooperative':
-            raise PermissionDenied("Seules les coopératives peuvent créer une coopérative")
-        serializer.save(manager=self.request.user)
-
-    @action(detail=False, methods=['get'])
-    def my_cooperative(self, request):
-        try:
-            cooperative = self.queryset.get(manager=request.user)
-            serializer = self.get_serializer(cooperative)
-            return Response(serializer.data)
-        except Cooperative.DoesNotExist:
-            return Response(
-                {"detail": "Vous ne gérez aucune coopérative"},
-                status=status.HTTP_404_NOT_FOUND
-            )
 
 class CooperativeMembershipViewSet(viewsets.ModelViewSet):
     queryset = CooperativeMembership.objects.all()
     serializer_class = CooperativeMembershipSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_permissions(self):
-        if self.action in ['create']:
-            # Les agriculteurs peuvent demander à rejoindre
-            return [permissions.IsAuthenticated() & IsFarmer()]
-        if self.action in ['update', 'partial_update', 'destroy']:
-            # Seuls les coopératives ou les agriculteurs concernés peuvent modifier
-            return [permissions.IsAuthenticated() & (IsCooperative() | IsFarmer())]
-        return [permissions.IsAuthenticated()]
-    
     def get_queryset(self):
-        queryset = CooperativeMembership.objects.all()
-        
-        # Si l'utilisateur est un agriculteur, montrer seulement ses adhésions
-        if self.request.user.role == 'farmer':
-            queryset = queryset.filter(farmer=self.request.user)
-        
-        # Si l'utilisateur est une coopérative, montrer seulement ses membres
-        elif self.request.user.role == 'cooperative':
-            # Trouver la coopérative gérée par cet utilisateur
-            cooperative = Cooperative.objects.filter(manager=self.request.user).first()
-            if cooperative:
-                queryset = queryset.filter(cooperative=cooperative)
-        
-        return queryset
+        user = self.request.user
+        if user.role == 'farmer':
+            return CooperativeMembership.objects.filter(farmer=user)
+        elif user.role == 'cooperative':
+            return CooperativeMembership.objects.filter(cooperative=user)
+        return CooperativeMembership.objects.none()
 
-    @action(detail=False, methods=['get'])
-    def me(self, request):
-        """Récupérer les adhésions de l'utilisateur connecté"""
-        memberships = self.get_queryset().filter(farmer=request.user)
-        serializer = self.get_serializer(memberships, many=True)
-        return Response(serializer.data)
+    def perform_create(self, serializer):
+        if self.request.user.role == 'farmer':
+            serializer.save(farmer=self.request.user)
+        else:
+            raise PermissionDenied('Only farmers can request membership')
 
 class SubsidyViewSet(viewsets.ModelViewSet):
     queryset = Subsidy.objects.all()
     serializer_class = SubsidySerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['name', 'description', 'subsidy_type']
-    ordering_fields = ['start_date', 'end_date', 'amount']
+    search_fields = ['name', 'provider', 'description']
+    ordering_fields = ['application_deadline', 'amount']
 
     def get_permissions(self):
-        if self.action in ['list', 'retrieve']:
-            return [permissions.IsAuthenticated()]
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            # Seuls le gouvernement et les ONGs peuvent gérer les subventions
             return [permissions.IsAuthenticated() & (IsGovernment() | IsNGO())]
-        return [permissions.IsAdminUser()]
-    
-    def get_queryset(self):
-        queryset = Subsidy.objects.all()
-        
-        # Filtrage des subventions
-        subsidy_type = self.request.query_params.get('subsidy_type', None)
-        if subsidy_type:
-            queryset = queryset.filter(subsidy_type=subsidy_type)
-        
-        status = self.request.query_params.get('status', None)
-        if status:
-            queryset = queryset.filter(status=status)
-        
-        return queryset
-    
-    def perform_create(self, serializer):
-        # Assigne automatiquement le fournisseur actuel
-        serializer.save(provider=self.request.user)
+        return [permissions.IsAuthenticated()]
 
 class SubsidyApplicationViewSet(viewsets.ModelViewSet):
     queryset = SubsidyApplication.objects.all()
     serializer_class = SubsidyApplicationSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['subsidy__name', 'farmer__username', 'status']
+    ordering_fields = ['created_at', 'expiry_date']
 
-    def get_permissions(self):
-        if self.action in ['create']:
-            # Les agriculteurs et coopératives peuvent demander des subventions
-            return [permissions.IsAuthenticated() & (IsFarmer() | IsCooperative())]
-        if self.action in ['update', 'partial_update']:
-            # Les fournisseurs de subventions peuvent mettre à jour les demandes
-            return [permissions.IsAuthenticated() & (IsGovernment() | IsNGO())]
-        return [permissions.IsAuthenticated()]
-    
     def get_queryset(self):
-        queryset = SubsidyApplication.objects.all()
-        
-        # Si l'utilisateur est un agriculteur, montrer seulement ses demandes
-        if self.request.user.role in ['farmer', 'cooperative']:
-            queryset = queryset.filter(applicant=self.request.user)
-        
-        # Si l'utilisateur est un fournisseur de subventions, montrer les demandes pour ses subventions
-        elif self.request.user.role in ['government', 'ngo']:
-            subsidies = Subsidy.objects.filter(provider=self.request.user)
-            queryset = queryset.filter(subsidy__in=subsidies)
-        
-        # Filtrage des demandes
-        status = self.request.query_params.get('status', None)
-        if status:
-            queryset = queryset.filter(status=status)
-        
-        return queryset
-    
+        user = self.request.user
+        if user.role == 'farmer':
+            return SubsidyApplication.objects.filter(farmer=user)
+        elif user.role in ['government', 'ngo']:
+            return SubsidyApplication.objects.filter(subsidy__provider=user)
+        return SubsidyApplication.objects.none()
+
     def perform_create(self, serializer):
-        # Assigne automatiquement le demandeur actuel
-        serializer.save(applicant=self.request.user)
+        if self.request.user.role == 'farmer':
+            serializer.save(farmer=self.request.user)
+        else:
+            raise PermissionDenied('Only farmers can apply for subsidies')
 
 class MarketPriceViewSet(viewsets.ModelViewSet):
     queryset = MarketPrice.objects.all()
     serializer_class = MarketPriceSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['product_name', 'region']
-    ordering_fields = ['date', 'price']
+    search_fields = ['product__name']
+    ordering_fields = ['updated_at', 'price']
 
     def get_permissions(self):
-        if self.action in ['list', 'retrieve']:
-            return [permissions.IsAuthenticated()]
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            # Seuls le gouvernement et les administrateurs peuvent gérer les prix du marché
-            return [permissions.IsAuthenticated() & (IsGovernment() | permissions.IsAdminUser())]
-        return [permissions.IsAdminUser()]
-    
-    def get_queryset(self):
-        queryset = MarketPrice.objects.all()
-        
-        # Filtrage des prix
-        product = self.request.query_params.get('product', None)
-        if product:
-            queryset = queryset.filter(product_name__icontains=product)
-        
-        region = self.request.query_params.get('region', None)
-        if region:
-            queryset = queryset.filter(region=region)
-        
-        category = self.request.query_params.get('category', None)
-        if category:
-            queryset = queryset.filter(category__id=category)
-        
-        return queryset
+            return [permissions.IsAuthenticated() & IsGovernment()]
+        return [permissions.IsAuthenticated()]
 
 class LoanViewSet(viewsets.ModelViewSet):
     queryset = Loan.objects.all()
@@ -478,75 +438,63 @@ class LoanViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['borrower__username', 'status']
-    ordering_fields = ['application_date', 'amount']
+    ordering_fields = ['created_at', 'amount']
 
-    def get_permissions(self):
-        if self.action in ['create']:
-            # Les agriculteurs et coopératives peuvent demander des prêts
-            return [permissions.IsAuthenticated() & (IsFarmer() | IsCooperative())]
-        if self.action in ['update', 'partial_update']:
-            # Les institutions financières peuvent mettre à jour les prêts
-            return [permissions.IsAuthenticated() & (IsFinancial() | permissions.IsAdminUser())]
-        return [permissions.IsAuthenticated()]
-    
     def get_queryset(self):
-        queryset = Loan.objects.all()
-        
-        # Si l'utilisateur est un emprunteur, montrer seulement ses prêts
-        if self.request.user.role in ['farmer', 'cooperative']:
-            queryset = queryset.filter(borrower=self.request.user)
-        
-        # Si l'utilisateur est un prêteur, montrer seulement les prêts qu'il a accordés
-        elif self.request.user.role == 'financial':
-            queryset = queryset.filter(lender=self.request.user)
-        
-        # Filtrage des prêts
-        status = self.request.query_params.get('status', None)
-        if status:
-            queryset = queryset.filter(status=status)
-        
-        return queryset
-    
+        user = self.request.user
+        if user.role == 'farmer':
+            return Loan.objects.filter(borrower=user)
+        elif user.role == 'financial':
+            return Loan.objects.filter(lender=user)
+        return Loan.objects.none()
+
     def perform_create(self, serializer):
-        # Assigne automatiquement l'emprunteur actuel
-        serializer.save(borrower=self.request.user)
+        if self.request.user.role == 'financial':
+            serializer.save(lender=self.request.user)
+        else:
+            raise PermissionDenied('Only financial institutions can create loans')
+
+class LoanRepaymentViewSet(viewsets.ModelViewSet):
+    queryset = LoanRepayment.objects.all()
+    serializer_class = LoanRepaymentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['loan__borrower__username']
+    ordering_fields = ['payment_date', 'amount']
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == 'farmer':
+            return LoanRepayment.objects.filter(loan__borrower=user)
+        elif user.role == 'financial':
+            return LoanRepayment.objects.filter(loan__lender=user)
+        return LoanRepayment.objects.none()
+
+    def perform_create(self, serializer):
+        if self.request.user.role == 'farmer':
+            serializer.save()
+        else:
+            raise PermissionDenied('Only farmers can make loan repayments')
 
 class NGOProjectViewSet(viewsets.ModelViewSet):
     queryset = NGOProject.objects.all()
     serializer_class = NGOProjectSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['title', 'description', 'location']
-    ordering_fields = ['start_date', 'budget']
+    search_fields = ['name', 'description', 'region']
+    ordering_fields = ['start_date', 'end_date', 'budget']
 
     def get_permissions(self):
-        if self.action in ['list', 'retrieve']:
-            return [permissions.IsAuthenticated()]
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            # Seuls les ONGs peuvent gérer leurs projets
             return [permissions.IsAuthenticated() & IsNGO()]
-        return [permissions.IsAdminUser()]
-    
+        return [permissions.IsAuthenticated()]
+
     def get_queryset(self):
-        queryset = NGOProject.objects.all()
-        
-        # Si l'utilisateur est une ONG, montrer seulement ses projets
         if self.request.user.role == 'ngo':
-            queryset = queryset.filter(ngo=self.request.user)
-        
-        # Filtrage des projets
-        status = self.request.query_params.get('status', None)
-        if status:
-            queryset = queryset.filter(status=status)
-        
-        location = self.request.query_params.get('location', None)
-        if location:
-            queryset = queryset.filter(location__icontains=location)
-        
-        return queryset
-    
+            return NGOProject.objects.filter(ngo=self.request.user)
+        return NGOProject.objects.all()
+
     def perform_create(self, serializer):
-        # Assigne automatiquement l'ONG actuelle
         serializer.save(ngo=self.request.user)
 
 class TrainingViewSet(viewsets.ModelViewSet):
@@ -555,16 +503,13 @@ class TrainingViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['title', 'description', 'location']
-    ordering_fields = ['start_date']
+    ordering_fields = ['start_date', 'end_date']
 
     def get_permissions(self):
-        if self.action in ['list', 'retrieve']:
-            return [permissions.IsAuthenticated()]
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            # Les coopératives, ONGs et gouvernement peuvent créer des formations
             return [permissions.IsAuthenticated() & (IsCooperative() | IsNGO() | IsGovernment())]
-        return [permissions.IsAdminUser()]
-    
+        return [permissions.IsAuthenticated()]
+
     def get_queryset(self):
         queryset = Training.objects.all()
         
@@ -582,7 +527,7 @@ class TrainingViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(location__icontains=location)
         
         return queryset
-    
+
     def perform_create(self, serializer):
         # Assigne automatiquement l'organisateur actuel
         serializer.save(organizer=self.request.user)

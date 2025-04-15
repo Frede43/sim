@@ -1,4 +1,6 @@
+import React from 'react';
 import { Route, Routes } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Unauthorized from './pages/Unauthorized';
@@ -67,9 +69,13 @@ import NgoImpact from './pages/dashboard/ngo/NgoImpact';
 import NgoMap from './pages/dashboard/ngo/NgoMap';
 import NgoReports from './pages/dashboard/ngo/NgoReports';
 import NgoFunding from './pages/dashboard/ngo/NgoFunding';
+import FarmerDashboardLayout from './layouts/FarmerDashboardLayout';
+
+const queryClient = new QueryClient();
 
 const App = () => {
   return (
+    <QueryClientProvider client={queryClient}>
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
@@ -101,7 +107,8 @@ const App = () => {
         </Route>
 
         {/* Farmer routes */}
-        <Route path="/dashboard/farmer" element={<ProtectedRoute component={FarmerDashboard} roles={[ROLES.FARMER]} />}>
+        <Route path="/dashboard/farmer" element={<ProtectedRoute component={FarmerDashboardLayout} roles={[ROLES.FARMER]} />}>
+          <Route index element={<ProtectedRoute component={FarmerDashboard} roles={[ROLES.FARMER]} />} />
           <Route path="products" element={<ProtectedRoute component={FarmerProducts} roles={[ROLES.FARMER]} />} />
           <Route path="sales" element={<ProtectedRoute component={FarmerSales} roles={[ROLES.FARMER]} />} />
           <Route path="subsidies" element={<ProtectedRoute component={FarmerSubsidies} roles={[ROLES.FARMER]} />} />
@@ -149,6 +156,7 @@ const App = () => {
       {/* 404 page */}
       <Route path="*" element={<NotFound />} />
     </Routes>
+    </QueryClientProvider>
   );
 };
 

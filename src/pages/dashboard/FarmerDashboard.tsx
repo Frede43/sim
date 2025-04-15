@@ -1,12 +1,9 @@
 
 import React from 'react';
 import { 
-  Home, 
   Wheat, 
-  CreditCard, 
   TrendingUp, 
-  ShoppingCart,
-  Users
+  Loader2
 } from 'lucide-react';
 import { 
   Card, 
@@ -15,49 +12,41 @@ import {
   CardHeader, 
   CardTitle 
 } from '@/components/ui/card';
-import DashboardLayout from '@/components/DashboardLayout';
+import FarmerDashboardLayout from '@/layouts/FarmerDashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProfileDashboard } from '@/components/ProfileDashboard';
+import { useQuery } from '@tanstack/react-query';
+import { dashboardApi } from '@/services/api/dashboardApi';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { DashboardData } from '@/types/dashboard';
 
-const FarmerDashboard = () => {
+const FarmerDashboard = (): JSX.Element => {
   const { user } = useAuth();
+  const { data: dashboardData, isLoading, error } = useQuery<DashboardData>({ 
+    queryKey: ['farmerDashboard'],
+    queryFn: dashboardApi.getFarmerDashboard
+  });
 
-  const sidebarItems = [
-    {
-      icon: Home,
-      label: 'Tableau de bord',
-      href: '/dashboard/farmer',
-      active: true,
-    },
-    {
-      icon: Wheat,
-      label: 'Mes Produits',
-      href: '/dashboard/farmer/products',
-    },
-    {
-      icon: ShoppingCart,
-      label: 'Mes Ventes',
-      href: '/dashboard/farmer/sales',
-    },
-    {
-      icon: CreditCard,
-      label: 'Subventions',
-      href: '/dashboard/farmer/subsidies',
-    },
-    {
-      icon: TrendingUp,
-      label: 'Prix du Marché',
-      href: '/dashboard/farmer/market',
-    },
-    {
-      icon: Users,
-      label: 'Coopératives',
-      href: '/dashboard/farmer/cooperatives',
-    },
-  ];
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="h-8 w-8 animate-spin text-agri" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertDescription>
+          Une erreur est survenue lors du chargement des données.
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
-    <DashboardLayout sidebarItems={sidebarItems}>
+    <div>
       <h1 className="text-2xl font-bold mb-6">
         Bonjour, {user?.name} 👋
       </h1>
@@ -76,7 +65,7 @@ const FarmerDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">450,000 BIF</div>
+                <div className="text-2xl font-bold">{dashboardData?.monthlyRevenue.toLocaleString()} BIF</div>
                 <p className="text-xs text-muted-foreground flex items-center mt-1">
                   <TrendingUp className="text-green-500 h-4 w-4 mr-1" />
                   <span className="text-green-500 font-medium">+12%</span> par rapport au mois dernier
@@ -91,9 +80,9 @@ const FarmerDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">3</div>
+                <div className="text-2xl font-bold">{dashboardData?.activeOrders.total}</div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  2 en attente de livraison
+                  {dashboardData?.activeOrders.pendingDelivery} en attente de livraison
                 </p>
               </CardContent>
             </Card>
@@ -105,9 +94,9 @@ const FarmerDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">250,000 BIF</div>
+                <div className="text-2xl font-bold">{dashboardData?.availableSubsidies.amount.toLocaleString()} BIF</div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Date d'expiration: 30/12/2023
+                  Date d'expiration: {dashboardData?.availableSubsidies.expiryDate}
                 </p>
               </CardContent>
             </Card>
@@ -125,20 +114,20 @@ const FarmerDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {[1, 2, 3].map((item) => (
-                <div key={item} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
+              {dashboardData?.recentSales.map((sale) => (
+                <div key={sale.id} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
                   <div className="flex items-center">
                     <div className="w-10 h-10 rounded bg-agri/10 flex items-center justify-center mr-3">
                       <Wheat className="h-5 w-5 text-agri" />
                     </div>
                     <div>
-                      <div className="font-medium">Maïs (50kg)</div>
-                      <div className="text-xs text-muted-foreground">Vendu le {['10/07', '15/07', '22/07'][item - 1]}/2023</div>
+                      <div className="font-medium">{sale.product} ({sale.quantity}{sale.unit})</div>
+                      <div className="text-xs text-muted-foreground">Vendu le {sale.date}</div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-medium">{[45000, 90000, 45000][item - 1]} BIF</div>
-                    <div className="text-xs text-green-500">Payé</div>
+                    <div className="font-medium">{sale.amount.toLocaleString()} BIF</div>
+                    <div className="text-xs text-green-500">{sale.status}</div>
                   </div>
                 </div>
               ))}
@@ -155,18 +144,13 @@ const FarmerDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {[
-                { name: 'Maïs', price: '900 BIF/kg', change: '+5%' },
-                { name: 'Haricots', price: '1,200 BIF/kg', change: '-2%' },
-                { name: 'Pommes de terre', price: '700 BIF/kg', change: '+8%' },
-                { name: 'Tomates', price: '1,500 BIF/kg', change: '+12%' }
-              ].map((product, index) => (
+              {dashboardData?.marketPrices.map((product, index) => (
                 <div key={index} className="flex items-center justify-between">
-                  <span className="font-medium">{product.name}</span>
+                  <span className="font-medium">{product.product}</span>
                   <div className="text-right">
-                    <div>{product.price}</div>
-                    <div className={`text-xs ${product.change.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
-                      {product.change}
+                    <div>{product.price.toLocaleString()} BIF/kg</div>
+                    <div className={`text-xs ${product.priceChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      {product.priceChange >= 0 ? '+' : ''}{product.priceChange}%
                     </div>
                   </div>
                 </div>
@@ -186,26 +170,13 @@ const FarmerDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {[
-                { 
-                  title: 'Subvention pour l\'achat de semences', 
-                  provider: 'Ministère de l\'Agriculture', 
-                  amount: '100,000 BIF',
-                  deadline: '15/08/2023'
-                },
-                { 
-                  title: 'Prêt pour l\'équipement agricole', 
-                  provider: 'Banque Agricole du Burundi', 
-                  amount: '500,000 BIF',
-                  deadline: '30/08/2023'
-                }
-              ].map((item, index) => (
+              {dashboardData?.fundingOpportunities.map((item, index) => (
                 <div key={index} className="bg-agri/5 p-4 rounded-lg">
                   <div className="flex justify-between items-start">
                     <div>
                       <h4 className="font-semibold">{item.title}</h4>
                       <p className="text-sm text-muted-foreground">{item.provider}</p>
-                      <p className="text-sm mt-1">Montant: <span className="font-medium">{item.amount}</span></p>
+                      <p className="text-sm mt-1">Montant: <span className="font-medium">{item.amount.toLocaleString()} BIF</span></p>
                     </div>
                     <div className="text-sm text-muted-foreground">
                       Date limite: {item.deadline}
@@ -217,7 +188,7 @@ const FarmerDashboard = () => {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

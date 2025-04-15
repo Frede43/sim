@@ -152,8 +152,23 @@ class CooperativeMembershipSerializer(serializers.ModelSerializer):
         fields = ('id', 'farmer', 'cooperative', 'joined_date', 'status', 'notes')
 
 class LoginSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=True)
+    username = serializers.CharField(required=True)
     password = serializers.CharField(required=True, write_only=True)
+    
+    def validate_username(self, value):
+        # Vérifier si c'est un email ou un nom d'utilisateur
+        UserModel = get_user_model()
+        try:
+            # Essayer de trouver l'utilisateur par email
+            user = UserModel.objects.get(email=value)
+            return value
+        except UserModel.DoesNotExist:
+            try:
+                # Essayer de trouver l'utilisateur par username
+                user = UserModel.objects.get(username=value)
+                return value
+            except UserModel.DoesNotExist:
+                raise serializers.ValidationError("Aucun utilisateur trouvé avec cet identifiant.")
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
